@@ -1,32 +1,43 @@
-# React + TypeScript + Vite
+# Crash UI
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Web dashboard for [Mihomo](https://github.com/MetaCubeX/mihomo) (Clash.Meta) proxy server.
 
-Currently, two official plugins are available:
+## Quick Start
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+pnpm install
+pnpm dev
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Open `http://localhost:5173` and connect to your Mihomo backend (default `http://127.0.0.1:9090`).
+
+## Build
+
+```bash
+pnpm build
+```
+
+Output in `dist/`. Deploy by editing `dist/config.js` to set the backend URL.
+
+## Deploy
+
+Replace `defaultBackendURL` in `dist/config.js`, then serve `dist/` with any static server:
+
+```bash
+npx serve dist
+```
+
+## Tech Stack
+
+- React 19 + TypeScript
+- MUI (Material UI)
+- Zustand (state management)
+- React Router (hash router)
+- Recharts (charts)
+- i18next (i18n, en + cn)
+- Vite (bundler)
+
+## Related
+
+- [crash](https://github.com/ahaoboy/crash)
+- [MetaCubeXD](https://github.com/MetaCubeX/metacubexd)
