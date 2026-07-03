@@ -36,6 +36,7 @@ interface NavItem {
 const Side = styled("aside")(({ theme }) => ({
   width: 208,
   flexShrink: 0,
+  height: "100%",
   borderRight: `1px solid ${theme.palette.divider}`,
   backgroundColor: theme.palette.background.paper,
   display: "flex",
@@ -234,7 +235,7 @@ export default function Sidebar(): React.ReactElement {
             <ThemeToggleBtn />
           </Box>
 
-          <Versions collapsed={!expanded} />
+          <Versions />
         </SideBody>
       </Side>
 

@@ -66,7 +66,7 @@ export default function DefaultLayout(): ReactNode {
       }}
     >
       {isDesktop ? <TitleBar /> : null}
-      <Box sx={{ display: "flex", flex: 1, minHeight: 0 }}>
+      <Box sx={{ display: "flex", flex: 1, minHeight: 0, overflow: "hidden" }}>
         {!isSetup ? <Sidebar /> : null}
         <Box
           component="main"
@@ -75,9 +75,7 @@ export default function DefaultLayout(): ReactNode {
             minWidth: 0,
             p: { xs: 1, sm: 2 },
             pb: isSetup ? 2 : { xs: 10, lg: 2 },
-            display: "flex",
-            flexDirection: "column",
-            minHeight: 0,
+            overflowY: "auto",
             mt: { xs: 7, lg: 0 },
           }}
         >

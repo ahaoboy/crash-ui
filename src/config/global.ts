@@ -30,4 +30,4 @@ export function getDesktopBridge(): DesktopBridge {
   return (typeof window !== "undefined" && window.crashDesktop) || {};
 }
 
-export const APP_VERSION = "1.0.0";
+export { version as APP_VERSION } from "../../package.json";

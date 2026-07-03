@@ -95,7 +95,7 @@ export default function ProxiesPage(): React.ReactElement {
           >
             {PROXIES_DISPLAY_MODE_ORDER.map((m) => (
               <MenuItem key={m as string} value={m as string}>
-                {m}
+                {t(m as string)}
               </MenuItem>
             ))}
           </TextField>
@@ -111,7 +111,7 @@ export default function ProxiesPage(): React.ReactElement {
           >
             {PROXIES_ORDERING_TYPE_ORDER.map((o) => (
               <MenuItem key={o as string} value={o as string}>
-                {o}
+                {t(o as string)}
               </MenuItem>
             ))}
           </TextField>
@@ -131,7 +131,7 @@ export default function ProxiesPage(): React.ReactElement {
               PROXIES_CARD_SIZE.TIGHT,
             ].map((c) => (
               <MenuItem key={c} value={c}>
-                {c}
+                {t(`cardSize${c.charAt(0).toUpperCase() + c.slice(1)}`)}
               </MenuItem>
             ))}
           </TextField>

@@ -40,7 +40,7 @@ export default function ProxyNodeCard({
         cursor: "pointer",
         minWidth,
         flex: `1 0 ${minWidth}px`,
-        maxWidth: 300,
+        maxWidth: minWidth * 2,
         m: `${gap / 2}px`,
         borderRadius: 2,
         borderColor: isSelected ? "primary.main" : "divider",
@@ -60,53 +60,51 @@ export default function ProxyNodeCard({
         }}
       >
         <Stack spacing={0.5}>
-          <Box
-            sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 1 }}
+          <Typography
+            variant="body2"
+            noWrap
+            sx={{
+              fontWeight: 500,
+              color: isSelected ? "primary.main" : "text.primary",
+            }}
+            title={proxyName}
           >
-            <Typography
-              variant="body2"
-              sx={{
-                fontWeight: 500,
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-                color: isSelected ? "primary.main" : "text.primary",
-              }}
-              title={proxyName}
-            >
-              {proxyName}
-            </Typography>
-            <Latency
-              proxyName={proxyName}
-              testUrl={testUrl}
-              groupName={groupName}
-              interactive
-              onClick={onTest}
-            />
-          </Box>
-          {node ? (
-            <Box sx={{ display: "flex", gap: 0.5, alignItems: "center", flexWrap: "wrap" }}>
-              <Chip size="small" label={translateProxyType(node.type, t)} />
-              {node.udp ? (
-                <Chip
-                  size="small"
-                  variant="outlined"
-                  label="UDP"
-                  sx={{ height: 18, fontSize: 10 }}
-                />
-              ) : null}
-              {node.xudp ? (
-                <Chip
-                  size="small"
-                  variant="outlined"
-                  label="XUDP"
-                  sx={{ height: 18, fontSize: 10 }}
-                />
-              ) : null}
+            {proxyName}
+          </Typography>
+          <Box sx={{ display: "flex", gap: 0.5, alignItems: "center", flexWrap: "wrap" }}>
+            {node ? (
+              <>
+                <Chip size="small" label={translateProxyType(node.type, t)} />
+                {node.udp ? (
+                  <Chip
+                    size="small"
+                    variant="outlined"
+                    label="UDP"
+                    sx={{ height: 18, fontSize: 10 }}
+                  />
+                ) : null}
+                {node.xudp ? (
+                  <Chip
+                    size="small"
+                    variant="outlined"
+                    label="XUDP"
+                    sx={{ height: 18, fontSize: 10 }}
+                  />
+                ) : null}
+              </>
+            ) : (
+              <Chip size="small" label="—" />
+            )}
+            <Box sx={{ ml: "auto" }}>
+              <Latency
+                proxyName={proxyName}
+                testUrl={testUrl}
+                groupName={groupName}
+                interactive
+                onClick={onTest}
+              />
             </Box>
-          ) : (
-            <Chip size="small" label="—" />
-          )}
+          </Box>
         </Stack>
       </CardContent>
     </Card>
