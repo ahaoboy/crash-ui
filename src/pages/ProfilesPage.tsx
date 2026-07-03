@@ -16,10 +16,7 @@ import { getControlApi } from "@/lib/controlApi";
 import { useControlInfo } from "@/lib/controlInfo";
 import type { ProfileDetail, ProfileMeta } from "@/types/control";
 
-// Minimal profiles page: list + import URL + activate + delete. The upstream
-// metacubexd UI embeds a Monaco YAML editor here — that 600KB dependency is
-// deliberately omitted so the bundle stays small; editing falls back to a
-// plain textarea on the per-profile detail card.
+// Profiles page: list + import URL + activate + delete.
 export default function ProfilesPage(): React.ReactElement {
   const { t } = useTranslation();
   const hasFeature = useControlInfo((s) => s.hasFeature);

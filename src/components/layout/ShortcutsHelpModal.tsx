@@ -1,5 +1,6 @@
 import { Dialog, DialogTitle, DialogContent, List, ListItem, Box, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
+import { useShallow } from "zustand/shallow";
 import { useShortcutsStore } from "@/stores/shortcuts";
 import { SHORTCUT_CATEGORIES, SHORTCUT_LABELS, formatShortcutKey } from "@/constants/shortcuts";
 
@@ -8,7 +9,7 @@ export default function ShortcutsHelpModal(): React.ReactElement {
   const { t } = useTranslation();
   const open = useShortcutsStore((s) => s.isHelpModalOpen);
   const close = useShortcutsStore((s) => s.closeHelpModal);
-  const shortcuts = useShortcutsStore((s) => s.shortcuts);
+  const shortcuts = useShortcutsStore(useShallow((s) => s.shortcuts));
 
   return (
     <Dialog open={open} onClose={close} maxWidth="xs" fullWidth>

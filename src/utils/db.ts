@@ -1,4 +1,3 @@
-// IndexedDB store for per-minute data usage logs — ported verbosely.
 export interface DataUsageLog {
   id?: number;
   timestamp: number;
@@ -11,7 +10,7 @@ export interface DataUsageLog {
   download: number;
 }
 
-const DB_NAME = "metacubexd_db";
+const DB_NAME = "crash_ui_db";
 const STORE_NAME = "data_usage_logs";
 const DB_VERSION = 1;
 

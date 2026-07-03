@@ -16,16 +16,15 @@ import {
   BarChart,
   Bar,
 } from "recharts";
+import { useShallow } from "zustand/shallow";
 import { useConnectionsStore } from "@/stores/connections";
 import { db } from "@/utils/db";
 import { formatBytes } from "@/utils/format";
 
-// Traffic analytics page. Uses simple Recharts pies + a connection-count line
-// chart rather than metacubexd's complex Highcharts area + d3 visualizations.
-// Reads per-source-IP / per-host aggregates from the IndexedDB log buffer.
+// Traffic analytics page with Recharts pies + connection-count line chart.
 export default function TrafficPage(): React.ReactElement {
   const { t } = useTranslation();
-  const active = useConnectionsStore((s) => s.activeConnections);
+  const active = useConnectionsStore(useShallow((s) => s.activeConnections));
   const [data, setData] = useState<Array<{ label: string; download: number; upload: number }>>([]);
   const [, setTick] = useState(0);
   useEffect(() => {

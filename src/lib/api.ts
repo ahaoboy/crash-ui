@@ -1,15 +1,13 @@
 import ky from "ky";
 import type { BackendVersion, Config, Proxy, ProxyProvider, Rule, RuleProvider } from "@/types";
 import { useEndpointStore } from "@/stores/endpoint";
-import { isMockMode } from "@/config/global";
-import { mockDataResolver } from "@/lib/mockData";
 import { compareVersions, isSingBoxVersion } from "@/utils/format";
 import { useControlInfo } from "@/lib/controlInfo";
 
-const METACUBEX_MIHOMO_REPO_URL = "repos/MetaCubeX/mihomo";
-const VERNESONG_MIHOMO_REPO_URL = "repos/vernesong/mihomo";
+const MIHOMO_REPO = "repos/MetaCubeX/mihomo";
+const VERNESONG_REPO = "repos/vernesong/mihomo";
 const BACKEND_VERSION_RE = /\b(alpha|beta|meta)-?(\S+)/i;
-const VERNESONG_MIHOMO_RE = /-smart-/i;
+const VERNESONG_RE = /-smart-/i;
 
 interface ReleaseAPIResponse {
   tag_name: string;
@@ -25,15 +23,11 @@ function resolveBackendReleaseTarget(currentVersion: string) {
   const channel = match?.[1]?.toLowerCase() as BackendReleaseChannel | undefined;
   return {
     channel: channel ?? "stable",
-    repositoryURL: VERNESONG_MIHOMO_RE.test(currentVersion)
-      ? VERNESONG_MIHOMO_REPO_URL
-      : METACUBEX_MIHOMO_REPO_URL,
+    repositoryURL: VERNESONG_RE.test(currentVersion) ? VERNESONG_REPO : MIHOMO_REPO,
     versionSuffix: match?.[2] ?? "",
   };
 }
 
-// Minimal ky-like interface returned by getRequest so the test mocks can
-// substitute easily.
 export interface RequestClient {
   get: (url: string, opts?: Record<string, unknown>) => { json: <T>() => Promise<T> };
   post: (url: string, opts?: Record<string, unknown>) => { json: <T>() => Promise<T> };
@@ -42,21 +36,7 @@ export interface RequestClient {
   delete: (url: string, opts?: Record<string, unknown>) => { json: <T>() => Promise<T> };
 }
 
-// Mock-mode handler — resolves paths through the central resolver.
-function mockRequest(): RequestClient {
-  const handler = async <T>(url: string): Promise<T> => mockDataResolver(url) as T;
-  const wrap = (url: string) => ({ json: <T>() => handler<T>(url) });
-  return {
-    get: wrap,
-    post: wrap,
-    put: wrap,
-    patch: wrap,
-    delete: wrap,
-  };
-}
-
 export function getRequest(): RequestClient {
-  if (isMockMode()) return mockRequest();
   const endpoint = useEndpointStore.getState().currentEndpoint();
   if (!endpoint) {
     return ky.create({}) as unknown as RequestClient;
@@ -264,7 +244,7 @@ export async function updateGEODatabasesAPI(): Promise<void> {
 // ---- releases ----
 export async function frontendReleaseAPI(currentVersion: string) {
   const { tag_name, body } = await githubAPI()
-    .get("repos/MetaCubeX/metacubexd/releases/latest")
+    .get("repos/crash-ui/crash-ui/releases/latest")
     .json<ReleaseAPIResponse>();
   return { isUpdateAvailable: compareVersions(tag_name, currentVersion) > 0, changelog: body };
 }

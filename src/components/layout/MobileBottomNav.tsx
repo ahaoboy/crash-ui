@@ -84,8 +84,7 @@ interface Item {
   primary?: boolean;
 }
 
-// Mobile-first bottom navigation: 4 primary items + a center FAB containing
-// secondary routes. Mirrors metacubexd's MobileBottomNav affordance.
+// Mobile-first bottom navigation: 4 primary items + a center FAB.
 export default function MobileBottomNav(): React.ReactElement {
   const { t } = useTranslation();
   const location = useLocation();

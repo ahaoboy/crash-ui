@@ -1,5 +1,4 @@
-// Tiny store for the user-uploaded background image Blob.
-const DB_NAME = "metacubexd_appearance";
+const DB_NAME = "crash_appearance";
 const STORE_NAME = "assets";
 const DB_VERSION = 1;
 const BACKGROUND_KEY = "backgroundImage";

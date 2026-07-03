@@ -9,6 +9,7 @@ import {
   CartesianGrid,
   Legend,
 } from "recharts";
+import { useShallow } from "zustand/shallow";
 import { useGlobalStore } from "@/stores/global";
 
 // Recharts-based traffic line chart. Subscribes to the latestTraffic updates and
@@ -16,7 +17,7 @@ import { useGlobalStore } from "@/stores/global";
 // non-reactive (kept raw to avoid proxying every per-second push), so we force
 // a render each second via a timer.
 export default function TrafficLineChart(): React.ReactElement {
-  const latest = useGlobalStore((s) => s.latestTraffic);
+  const latest = useGlobalStore(useShallow((s) => s.latestTraffic));
   const [, setTick] = useState(0);
   useEffect(() => {
     const id = setInterval(() => setTick((n) => (n + 1) % 1_000_000), 1000);

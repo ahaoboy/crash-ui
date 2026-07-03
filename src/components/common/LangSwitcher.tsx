@@ -3,15 +3,9 @@ import { useTranslation } from "react-i18next";
 
 const LANGS = [
   { code: "en", label: "English" },
-  { code: "zh", label: "简体中文" },
-  { code: "ru", label: "Русский" },
-  { code: "ja", label: "日本語" },
-  { code: "ko", label: "한국어" },
-  { code: "fr", label: "Français" },
+  { code: "cn", label: "简体中文" },
 ];
 
-// Language picker — only English ships with translations today, but switching
-// updates i18next immediately so future locales drop in without UI changes.
 export default function LangSwitcher(props: Partial<SelectProps<string>>): React.ReactElement {
   const { i18n } = useTranslation();
   return (

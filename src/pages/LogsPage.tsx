@@ -8,6 +8,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useTranslation } from "react-i18next";
+import { useShallow } from "zustand/shallow";
 import { useLogsStore } from "@/stores/logs";
 import { useConfigStore } from "@/stores/config";
 import { LOG_LEVEL, LOGS_TABLE_MAX_ROWS_LIST } from "@/constants";
@@ -25,7 +26,7 @@ const LEVEL_COLORS: Record<string, string> = {
 // `configStore.logMaxRows` rows newest-first.
 export default function LogsPage(): React.ReactElement {
   const { t } = useTranslation();
-  const logs = useLogsStore((s) => s.logs);
+  const logs = useLogsStore(useShallow((s) => s.logs));
   const paused = useLogsStore((s) => s.paused);
   const togglePaused = useLogsStore((s) => s.togglePaused);
   const clearLogs = useLogsStore((s) => s.clearLogs);

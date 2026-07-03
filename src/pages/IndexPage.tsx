@@ -4,14 +4,10 @@ import { useTranslation } from "react-i18next";
 import ConnectForm from "@/components/pages/connect/ConnectForm";
 import { useEndpointStore } from "@/stores/endpoint";
 import { useConfigStore } from "@/stores/config";
-import { isMockMode } from "@/config/global";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useEffect, useRef, type RefObject } from "react";
 import type { ConnectFormHandle } from "@/components/pages/connect/ConnectForm";
 
-// Landing page — the connect-to-backend entry. Re-uses the ConnectForm component
-// so the same logic powers the inline landing and the Setup list. Mock mode and
-// already-connected users skip straight to their default page on mount.
 export default function IndexPage(): React.ReactElement {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -22,11 +18,10 @@ export default function IndexPage(): React.ReactElement {
   const formRef = useRef<ConnectFormHandle>(null) as RefObject<ConnectFormHandle | null>;
 
   useEffect(() => {
-    if (isMockMode() || currentEndpoint) {
+    if (currentEndpoint) {
       navigate(`/${defaultPage || "overview"}`, { replace: true });
       return;
     }
-    // Honor a ?hostname deep link, else probe the default backend silently.
     void formRef.current?.autoLogin(Object.fromEntries(params.entries()));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -42,7 +37,7 @@ export default function IndexPage(): React.ReactElement {
         p: 2,
       }}
     >
-      <Box sx={{ maxWidth: 420, mx: "auto", width: "100%", animation: "crsh-up 360ms ease" }}>
+      <Box sx={{ maxWidth: 420, mx: "auto", width: "100%" }}>
         <Box sx={{ textAlign: "center", mb: 4 }}>
           <Box
             sx={{
@@ -62,7 +57,7 @@ export default function IndexPage(): React.ReactElement {
             <IconServer size={28} />
           </Box>
           <Typography variant="h5" sx={{ fontWeight: 700, fontSize: 30 }}>
-            MetaCube<span style={{ color: "#E07A5F" }}>XD</span>
+            Crash<span style={{ color: "#E07A5F" }}>UI</span>
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
             {t("connectPrompt")}

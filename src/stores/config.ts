@@ -10,7 +10,7 @@ import type {
   PROXIES_ORDERING_TYPE,
   PROXIES_PREVIEW_TYPE,
   RULES_ORDERING_TYPE,
-  TAILWINDCSS_SIZE,
+  TableSize,
 } from "@/types";
 import type { IPProvider } from "@/types/network";
 import {
@@ -25,9 +25,9 @@ import {
   PROXIES_ORDERING_TYPE as ORDERING,
   PROXIES_PREVIEW_TYPE as PREVIEW,
   RULES_ORDERING_TYPE as RULES_ORDER,
-  TAILWINDCSS_SIZE as SIZE,
+  TableSize as SIZE,
 } from "@/constants";
-import type { ThemeName } from "@/constants";
+import type { ThemeMode } from "@/theme/theme";
 
 export interface LatencyQualityMap {
   NOT_CONNECTED: number;
@@ -37,10 +37,7 @@ export interface LatencyQualityMap {
 
 export interface ConfigStoreState {
   // Theme
-  curTheme: ThemeName;
-  autoSwitchTheme: boolean;
-  favDayTheme: ThemeName;
-  favNightTheme: ThemeName;
+  themeMode: ThemeMode;
 
   // Proxies
   proxiesPreviewType: PROXIES_PREVIEW_TYPE;
@@ -66,13 +63,13 @@ export interface ConfigStoreState {
   defaultPage: string;
 
   // Connections
-  connectionsTableSize: TAILWINDCSS_SIZE;
+  connectionsTableSize: TableSize;
   connectionsTableColumnVisibility: ConnectionsTableColumnVisibility;
   connectionsTableColumnOrder: ConnectionsTableColumnOrder;
   quickFilterRegex: string;
 
   // Logs
-  logsTableSize: TAILWINDCSS_SIZE;
+  logsTableSize: TableSize;
   logLevel: LOG_LEVEL;
   logMaxRows: number;
 
@@ -86,10 +83,10 @@ export interface ConfigStoreState {
   enableDataUsageTracking: boolean;
   showConnectionGeoIP: boolean;
   connectionGeoIPProvider: IPProvider;
-  setCurTheme: (theme: ThemeName) => void;
+  setThemeMode: (mode: ThemeMode) => void;
   resetProxiesSettings: () => void;
   resetRulesFilters: () => void;
-  resetXdConfig: () => void;
+  resetAppConfig: () => void;
   resolveLatencyTestUrl: (groupTestUrl?: string | null) => string;
   isLatencyTestHttps: () => boolean;
   latencyQualityMap: () => LatencyQualityMap;
@@ -101,15 +98,12 @@ const DEFAULT_DISPLAY = DISPLAY_MODE.CARD as PROXIES_DISPLAY_MODE;
 const DEFAULT_CARD = CARD_SIZE.COMFORTABLE as PROXIES_CARD_SIZE;
 const DEFAULT_RULES = RULES_ORDER.NATURAL as RULES_ORDERING_TYPE;
 const DEFAULT_LOG_LEVEL = LOG_LEVEL_ENUM.Info as LOG_LEVEL;
-const DEFAULT_TABLE_SIZE = SIZE.XS as TAILWINDCSS_SIZE;
+const DEFAULT_TABLE_SIZE = SIZE.XS as TableSize;
 
 export const useConfigStore = create<ConfigStoreState>()(
   persist(
     (set, get) => ({
-      curTheme: "sunset",
-      autoSwitchTheme: false,
-      favDayTheme: "nord",
-      favNightTheme: "sunset",
+      themeMode: "dark",
 
       proxiesPreviewType: DEFAULT_PROXIES_PREVIEW,
       proxiesPreviewAutoThreshold: 10,
@@ -152,7 +146,7 @@ export const useConfigStore = create<ConfigStoreState>()(
       showConnectionGeoIP: false,
       connectionGeoIPProvider: "ipwho.is",
 
-      setCurTheme: (theme) => set({ curTheme: theme }),
+      setThemeMode: (mode) => set({ themeMode: mode }),
       resetProxiesSettings: () =>
         set({
           proxiesPreviewType: DEFAULT_PROXIES_PREVIEW,
@@ -173,13 +167,10 @@ export const useConfigStore = create<ConfigStoreState>()(
         }),
       resetRulesFilters: () =>
         set({ rulesTypeFilter: [], rulesPolicyFilter: [], rulesStatusFilter: "all" }),
-      resetXdConfig: () =>
+      resetAppConfig: () =>
         set({
-          autoSwitchTheme: false,
+          themeMode: "dark",
           useMobileBottomNav: true,
-          favDayTheme: "nord",
-          favNightTheme: "sunset",
-          curTheme: "sunset",
           defaultPage: "overview",
           enableDataUsageTracking: true,
         }),
@@ -211,14 +202,9 @@ export const useConfigStore = create<ConfigStoreState>()(
       },
     }),
     {
-      name: "config-storage",
-      // Persist the user-tunable subset only — programmable state (reset handlers)
-      // stays in-memory.
+      name: "crash-config",
       partialize: (s) => ({
-        curTheme: s.curTheme,
-        autoSwitchTheme: s.autoSwitchTheme,
-        favDayTheme: s.favDayTheme,
-        favNightTheme: s.favNightTheme,
+        themeMode: s.themeMode,
         proxiesPreviewType: s.proxiesPreviewType,
         proxiesPreviewAutoThreshold: s.proxiesPreviewAutoThreshold,
         proxiesOrderingType: s.proxiesOrderingType,

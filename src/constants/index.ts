@@ -1,40 +1,4 @@
-// Themes mirror the upstream daisyUI curated names. MUI's theme is computed
-// by @/theme from `curTheme`, so the strings here just select presets.
-export const THEMES = [
-  "sunset",
-  "nord",
-  "dark",
-  "dim",
-  "dracula",
-  "black",
-  "cyberpunk",
-  "synthwave",
-  "business",
-  "corporate",
-  "garden",
-  "light",
-  "coffee",
-  "emerald",
-  "forest",
-  "night",
-  "winter",
-  "autumn",
-  "lemonade",
-  "retro",
-  "pastel",
-  "lofi",
-  "luxury",
-  "cmyk",
-  "cupcake",
-  "bumblebee",
-  "acid",
-  "aqua",
-  "dracula",
-  "fantasy",
-  "halloween",
-  "valentine",
-  "wireframe",
-] as const;
+export const THEMES = ["light", "dark"] as const;
 export type ThemeName = (typeof THEMES)[number];
 
 export const FALLBACK_BACKEND_URL = "http://127.0.0.1:9090";
@@ -189,7 +153,7 @@ export const CONNECTIONS_TABLE_INITIAL_COLUMN_VISIBILITY = {
   [CONNECTIONS_TABLE_ACCESSOR_KEY.ConnectTime]: true,
 } as unknown as Record<CONNECTIONS_TABLE_ACCESSOR_KEY, boolean>;
 
-export enum TAILWINDCSS_SIZE {
+export enum TableSize {
   XS = "xs",
   SM = "sm",
   MD = "md",

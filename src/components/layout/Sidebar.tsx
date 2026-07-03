@@ -14,6 +14,8 @@ import {
   IconPower,
   IconMenu2,
   IconRoute,
+  IconMoon,
+  IconSun,
 } from "@tabler/icons-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -23,7 +25,6 @@ import { useControlInfo } from "@/lib/controlInfo";
 import { useApiActions } from "@/lib/useApiActions";
 import LogoText from "@/components/common/LogoText";
 import LangSwitcher from "@/components/common/LangSwitcher";
-import ThemeSwitcher from "@/components/common/ThemeSwitcher";
 import Versions from "@/components/common/Versions";
 
 interface NavItem {
@@ -230,7 +231,7 @@ export default function Sidebar(): React.ReactElement {
             }}
           >
             <LangSwitcher />
-            <ThemeSwitcher />
+            <ThemeToggleBtn />
           </Box>
 
           <Versions collapsed={!expanded} />
@@ -271,7 +272,7 @@ export default function Sidebar(): React.ReactElement {
         <LogoText size={16} />
         <Box sx={{ ml: "auto", display: "flex", gap: 1 }}>
           <LangSwitcher />
-          <ThemeSwitcher />
+          <ThemeToggleBtn />
         </Box>
       </Box>
 
@@ -309,5 +310,23 @@ export default function Sidebar(): React.ReactElement {
         </Box>
       ) : null}
     </Box>
+  );
+}
+
+function ThemeToggleBtn() {
+  const mode = useConfigStore((s) => s.themeMode);
+  const setMode = useConfigStore((s) => s.setThemeMode);
+  const isDark = mode === "dark";
+  return (
+    <Button
+      size="small"
+      variant="outlined"
+      color="inherit"
+      onClick={() => setMode(isDark ? "light" : "dark")}
+      sx={{ minWidth: 36, borderColor: "divider", color: "text.secondary" }}
+      title={isDark ? "Light mode" : "Dark mode"}
+    >
+      {isDark ? <IconSun size={16} /> : <IconMoon size={16} />}
+    </Button>
   );
 }

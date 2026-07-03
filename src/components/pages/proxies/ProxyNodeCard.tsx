@@ -1,4 +1,5 @@
 import { Card, CardContent, Chip, Typography, Box, Stack } from "@mui/material";
+import { useShallow } from "zustand/shallow";
 import { useProxiesStore } from "@/stores/proxies";
 import { formatProxyType as translateProxyType } from "@/utils/proxy";
 import Latency from "@/components/common/Latency";
@@ -26,7 +27,7 @@ export default function ProxyNodeCard({
   onTest,
 }: Props): React.ReactElement {
   const { t } = useTranslation();
-  const node = useProxiesStore((s) => s.getNode(proxyName));
+  const node = useProxiesStore(useShallow((s) => s.getNode(proxyName)));
   const cardSize = useConfigStore((s) => s.proxiesCardSize) ?? PROXIES_CARD_SIZE.COMFORTABLE;
   const minWidth = PROXIES_CARD_SIZE_MIN_WIDTH[cardSize];
   const gap = PROXIES_CARD_SIZE_GAP[cardSize];

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useEndpointStore } from "@/stores/endpoint";
 import { checkEndpointAPI } from "./api";
 import { FALLBACK_BACKEND_URL } from "@/constants";
-import { isMockMode, getDefaultBackendURL } from "@/config/global";
+import { getDefaultBackendURL } from "@/config/global";
 import { randomUUID, transformEndpointURL } from "@/utils/format";
 
 export type ProbeState = "idle" | "probing" | "unreachable";
@@ -101,7 +101,6 @@ export function useConnect(formState?: FormState) {
     formData: FormState,
     options: ConnectOptions & { tryDefault?: boolean } = {},
   ): Promise<void> {
-    if (isMockMode()) return;
     const { tryDefault = true, shouldNavigate } = options;
     const hostname = query?.hostname as string | undefined;
     if (hostname) {

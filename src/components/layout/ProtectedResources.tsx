@@ -5,9 +5,7 @@ import { useControlInfo } from "@/lib/controlInfo";
 import { useKernelStore } from "@/stores/kernel";
 import { useConfigStore } from "@/stores/config";
 
-// Hidden component that opens the backend WebSockets when an endpoint is active
-// and the kernel (when applicable) is running — mirrors metacubexd's
-// ProtectedResources. Disconnects on unmount.
+// Hidden component that manages WebSocket connect/disconnect lifecycle.
 export default function ProtectedResources(): React.ReactElement {
   const ws = useBackendWebSocket();
   const ready = useControlInfo((s) => s.ready);

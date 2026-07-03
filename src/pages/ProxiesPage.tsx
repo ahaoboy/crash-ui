@@ -10,6 +10,7 @@ import {
 import { IconReload, IconBolt } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
 import { useEffect, useState } from "react";
+import { useShallow } from "zustand/shallow";
 import { useProxiesStore } from "@/stores/proxies";
 import { useConfigStore } from "@/stores/config";
 import { sortProxiesByOrderingType, filterProxiesByName } from "@/utils/proxy";
@@ -24,8 +25,8 @@ import {
 
 export default function ProxiesPage(): React.ReactElement {
   const { t } = useTranslation();
-  const proxies = useProxiesStore((s) => s.proxies);
-  const proxyProviders = useProxiesStore((s) => s.proxyProviders);
+  const proxies = useProxiesStore(useShallow((s) => s.proxies));
+  const proxyProviders = useProxiesStore(useShallow((s) => s.proxyProviders));
   const loaded = useProxiesStore((s) => s.proxiesLoaded);
   const fetchProxies = useProxiesStore((s) => s.fetchProxies);
   const selectProxyInGroup = useProxiesStore((s) => s.selectProxyInGroup);

@@ -52,7 +52,9 @@
   "relay": "Relay",
   "pass": "Pass",
   "testLatency": "Test latency",
-  "recommendation": { "testing": "Testing…" },
+  "recommendation": {
+    "testing": "Testing…"
+  },
   "reloadConfig": "Reload Config",
   "restartCore": "Restart Core",
   "restartCoreConfirm": "Restart the core? This will interrupt all active connections.",
@@ -119,9 +121,6 @@
   "latencyHighThreshold": "High Threshold",
   "autoCloseConns": "Automatically Close Connections",
   "autoSwitchEndpoint": "Automatically Switch Endpoint",
-  "autoSwitchTheme": "Auto Switch Theme (system)",
-  "favDayTheme": "Day Theme",
-  "favNightTheme": "Night Theme",
   "defaultPage": "Default Page",
   "stickyGroupHeader": "Sticky Group Header",
   "hideUnAvailableProxies": "Hide Unavailable Proxies",
@@ -178,7 +177,9 @@
     "stopping": "stopping…",
     "errored": "errored"
   },
-  "systemProxy": { "title": "System Proxy" },
+  "systemProxy": {
+    "title": "System Proxy"
+  },
   "enabled": "Enabled",
   "disabled": "Disabled",
   "webdavBackup": "WebDAV Backup",

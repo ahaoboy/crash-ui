@@ -6,7 +6,7 @@ import type {
   PROXIES_ORDERING_TYPE,
   PROXIES_PREVIEW_TYPE,
   RULES_ORDERING_TYPE,
-  TAILWINDCSS_SIZE,
+  TableSize,
 } from "@/constants";
 
 export interface Proxy {
@@ -233,7 +233,6 @@ export interface ReleaseInfo {
   isCurrent: boolean;
 }
 
-// Helpful re-export of the option enums so callers can `import { LogLevel } from '@/types'`.
 export type {
   CONNECTIONS_TABLE_ACCESSOR_KEY,
   LOG_LEVEL,
@@ -242,5 +241,5 @@ export type {
   PROXIES_ORDERING_TYPE,
   PROXIES_PREVIEW_TYPE,
   RULES_ORDERING_TYPE,
-  TAILWINDCSS_SIZE,
+  TableSize,
 };

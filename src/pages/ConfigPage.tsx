@@ -151,7 +151,7 @@ export default function ConfigPage(): React.ReactElement {
                 value={cfg.getState().latencyHighThreshold}
                 onChange={(v) => cfg.setState({ latencyHighThreshold: v })}
               />
-              <button onClick={() => cfg.getState().resetXdConfig()}>{t("resetSettings")}</button>
+              <button onClick={() => cfg.getState().resetAppConfig()}>{t("resetSettings")}</button>
             </Stack>
           </CardContent>
         </Card>

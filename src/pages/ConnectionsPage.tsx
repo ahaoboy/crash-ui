@@ -18,6 +18,7 @@ import {
 import { IconX } from "@tabler/icons-react";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useShallow } from "zustand/shallow";
 import { useConnectionsStore } from "@/stores/connections";
 import { useConfigStore } from "@/stores/config";
 import { useEndpointStore } from "@/stores/endpoint";
@@ -27,14 +28,14 @@ import { CONNECTIONS_TABLE_ACCESSOR_KEY } from "@/constants";
 
 export default function ConnectionsPage(): React.ReactElement {
   const { t } = useTranslation();
-  const active = useConnectionsStore((s) => s.activeConnections);
-  const closed = useConnectionsStore((s) => s.closedConnections);
+  const active = useConnectionsStore(useShallow((s) => s.activeConnections));
+  const closed = useConnectionsStore(useShallow((s) => s.closedConnections));
   const paused = useConnectionsStore((s) => s.paused);
   const setPaused = useConnectionsStore((s) => s.setPaused);
-  const columnVisibility = useConfigStore((s) => s.connectionsTableColumnVisibility);
+  const columnVisibility = useConfigStore(useShallow((s) => s.connectionsTableColumnVisibility));
   const tableSize = useConfigStore((s) => s.connectionsTableSize);
   const quickFilterRegex = useConfigStore((s) => s.quickFilterRegex);
-  const endpoint = useEndpointStore((s) => s.currentEndpoint());
+  const endpoint = useEndpointStore(useShallow((s) => s.currentEndpoint()));
   const [filter, setFilter] = useState("");
 
   useEffect(() => {

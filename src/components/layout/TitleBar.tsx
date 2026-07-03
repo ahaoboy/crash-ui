@@ -2,9 +2,7 @@ import { Box, IconButton } from "@mui/material";
 import { IconMinus, IconSquare, IconX, IconCopy } from "@tabler/icons-react";
 import { getDesktopBridge } from "@/config/global";
 
-// Custom 32px draggable window title bar — desktop (Electron) shell only. The
-// web build skips rendering this. Mirrors metacubexd's TitleBar but bound to a
-// minimal desktop bridge (window.metacubexd).
+// Custom draggable window title bar for desktop (Electron) shell.
 export default function TitleBar(): React.ReactElement | null {
   const bridge = getDesktopBridge();
   if (!bridge.isDesktop) return null;
@@ -24,16 +22,15 @@ export default function TitleBar(): React.ReactElement | null {
         WebkitAppRegion: "drag" as never,
       }}
       onDoubleClick={() => {
-        if (!isMac && windowMetacubexdWindow?.toggleMaximize)
-          windowMetacubexdWindow.toggleMaximize();
+        if (!isMac && desktopWindow?.toggleMaximize) desktopWindow.toggleMaximize();
       }}
     >
       <Box sx={{ flex: 1 }} />
-      {!isMac && windowMetacubexdWindow ? (
+      {!isMac && desktopWindow ? (
         <Box sx={{ display: "flex", WebkitAppRegion: "no-drag" as never, height: "100%" }}>
           <IconButton
             size="small"
-            onClick={() => windowMetacubexdWindow?.minimize?.()}
+            onClick={() => desktopWindow?.minimize?.()}
             aria-label="minimize"
             sx={{ borderRadius: 0, height: 30, width: 44 }}
           >
@@ -41,19 +38,15 @@ export default function TitleBar(): React.ReactElement | null {
           </IconButton>
           <IconButton
             size="small"
-            onClick={() => windowMetacubexdWindow?.toggleMaximize?.()}
+            onClick={() => desktopWindow?.toggleMaximize?.()}
             aria-label="maximize"
             sx={{ borderRadius: 0, height: 30, width: 44 }}
           >
-            {windowMetacubexdWindow.isMaximized?.() ? (
-              <IconCopy size={14} />
-            ) : (
-              <IconSquare size={14} />
-            )}
+            {desktopWindow.isMaximized?.() ? <IconCopy size={14} /> : <IconSquare size={14} />}
           </IconButton>
           <IconButton
             size="small"
-            onClick={() => windowMetacubexdWindow?.close?.()}
+            onClick={() => desktopWindow?.close?.()}
             aria-label="close"
             sx={{
               borderRadius: 0,
@@ -73,15 +66,13 @@ export default function TitleBar(): React.ReactElement | null {
   );
 }
 
-// Minimal desktop bridge shape; the renderer code declares it via a cast so no
-// global type assertion is needed at every call site.
 interface WindowBridge {
   isMaximized?: () => boolean;
   minimize?: () => void;
   toggleMaximize?: () => void;
   close?: () => void;
 }
-const windowMetacubexdWindow =
+const desktopWindow =
   typeof window !== "undefined"
-    ? (window as { metacubexdWindow?: WindowBridge }).metacubexdWindow
+    ? (window as { crashWindow?: WindowBridge }).crashWindow
     : undefined;

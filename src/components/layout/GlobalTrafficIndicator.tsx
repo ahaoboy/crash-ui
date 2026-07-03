@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Box, IconButton, Tooltip } from "@mui/material";
 import { IconArrowUp, IconArrowDown, IconGripVertical, IconX } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
+import { useShallow } from "zustand/shallow";
 import { formatBytes } from "@/utils/format";
 import { useGlobalStore } from "@/stores/global";
 import { useConnectionsStore } from "@/stores/connections";
@@ -13,8 +14,8 @@ import { useConnectionsStore } from "@/stores/connections";
 // with a much smaller Recharts-free readout to honor the bundle budget.
 export default function GlobalTrafficIndicator(): React.ReactElement | null {
   const { t } = useTranslation();
-  const latestTraffic = useGlobalStore((s) => s.latestTraffic);
-  const latestMemory = useGlobalStore((s) => s.latestMemory);
+  const latestTraffic = useGlobalStore(useShallow((s) => s.latestTraffic));
+  const latestMemory = useGlobalStore(useShallow((s) => s.latestMemory));
   const activeCount = useConnectionsStore((s) => s.latestConnectionMsg?.connections?.length ?? 0);
 
   const [collapsed, setCollapsed] = useState(true);

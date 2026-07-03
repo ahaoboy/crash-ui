@@ -1,6 +1,7 @@
 import { Box, Card, CardContent, Grid, Typography } from "@mui/material";
 import { IconArrowDown, IconArrowUp, IconBolt, IconCpu } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
+import { useShallow } from "zustand/shallow";
 import { useGlobalStore } from "@/stores/global";
 import { useConnectionsStore } from "@/stores/connections";
 import { useEndpointStore } from "@/stores/endpoint";
@@ -14,12 +15,12 @@ import TrafficLineChart from "@/components/pages/charts/TrafficLineChart";
 // line charts rather than the original Highcharts area-spline widgets.
 export default function OverviewPage(): React.ReactElement {
   const { t } = useTranslation();
-  const traffic = useGlobalStore((s) => s.latestTraffic);
-  const memory = useGlobalStore((s) => s.latestMemory);
+  const traffic = useGlobalStore(useShallow((s) => s.latestTraffic));
+  const memory = useGlobalStore(useShallow((s) => s.latestMemory));
   const activeConnections = useConnectionsStore((s) => s.activeConnections.length);
   const proxiesLoaded = useProxiesStore((s) => s.proxiesLoaded);
   const fetchProxies = useProxiesStore((s) => s.fetchProxies);
-  const endpoint = useEndpointStore((s) => s.currentEndpoint());
+  const endpoint = useEndpointStore(useShallow((s) => s.currentEndpoint()));
 
   useEffect(() => {
     if (endpoint && !proxiesLoaded) void fetchProxies();

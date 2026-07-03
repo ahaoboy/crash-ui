@@ -21,6 +21,7 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { IconBell, IconBellOff } from "@tabler/icons-react";
+import { useShallow } from "zustand/shallow";
 import { useRulesStore } from "@/stores/rules";
 import { useConfigStore } from "@/stores/config";
 import { getRuleFacets, filterRules, sortRulesByOrderingType } from "@/utils/proxy";
@@ -31,14 +32,14 @@ import { toggleRuleDisabledAPI } from "@/lib/api";
 // running-disable toggle (mihomo exposes this via PATCH /rules/disable).
 export default function RulesPage(): React.ReactElement {
   const { t } = useTranslation();
-  const rules = useRulesStore((s) => s.rules);
-  const ruleProviders = useRulesStore((s) => s.ruleProviders);
+  const rules = useRulesStore(useShallow((s) => s.rules));
+  const ruleProviders = useRulesStore(useShallow((s) => s.ruleProviders));
   const updateAll = useRulesStore((s) => s.updateAllRuleProvider);
   const updateRules = useRulesStore((s) => s.updateRules);
   const ordering = useConfigStore((s) => s.rulesOrderingType);
   const setOrdering = (v: RULES_ORDERING_TYPE) => useConfigStore.setState({ rulesOrderingType: v });
-  const typesFilter = useConfigStore((s) => s.rulesTypeFilter);
-  const policiesFilter = useConfigStore((s) => s.rulesPolicyFilter);
+  const typesFilter = useConfigStore(useShallow((s) => s.rulesTypeFilter));
+  const policiesFilter = useConfigStore(useShallow((s) => s.rulesPolicyFilter));
   const statusFilter = useConfigStore((s) => s.rulesStatusFilter);
   const resetFilters = useConfigStore((s) => s.resetRulesFilters);
   const [keyword, setKeyword] = useState("");

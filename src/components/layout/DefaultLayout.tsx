@@ -1,6 +1,5 @@
 import { useEffect, useRef, type ReactNode } from "react";
 import { Box, useMediaQuery } from "@mui/material";
-import type { Theme } from "@mui/material/styles";
 import { Outlet, useLocation } from "react-router-dom";
 import { useConfigStore } from "@/stores/config";
 import { useGlobalStore } from "@/stores/global";
@@ -16,42 +15,26 @@ import ConnectionErrorBanner from "@/components/layout/ConnectionErrorBanner";
 import GlobalTrafficIndicator from "@/components/layout/GlobalTrafficIndicator";
 import ShortcutsHelpModal from "@/components/layout/ShortcutsHelpModal";
 
-// Default shell: title bar (desktop), sidebar, mobile bottom nav, and the
-// protected resources + traffic indicator overlays. Skips the chrome on the
-// /setup and / (landing) routes which render through the BlankLayout.
 export default function DefaultLayout(): ReactNode {
   const location = useLocation();
   const rootRef = useRef<HTMLElement | null>(null);
   const rootElement = useGlobalStore((s) => s.setRootElement);
-  const curTheme = useConfigStore((s) => s.curTheme);
-  const autoSwitch = useConfigStore((s) => s.autoSwitchTheme);
-  const favDay = useConfigStore((s) => s.favDayTheme);
-  const favNight = useConfigStore((s) => s.favNightTheme);
   const useBottomNav = useConfigStore((s) => s.useMobileBottomNav);
   const probe = useControlInfo((s) => s.probe);
   const ready = useControlInfo((s) => s.ready);
   const hasKernelControl = useControlInfo((s) => s.hasFeature("kernel-control"));
 
-  const prefersDark = useMediaQuery<Theme>((t) =>
-    t.palette.mode === "dark" ? "(prefers-color-scheme: dark)" : "(min-width: 0)",
-  );
+  const prefersDark = useMediaQuery("(prefers-color-scheme: dark)");
 
-  // Theme auto-switch: react to system dark/light preferences.
+  // Auto-switch theme based on system preference.
   useEffect(() => {
-    if (!autoSwitch) return;
-    useConfigStore.setState({ curTheme: prefersDark ? favNight : favDay });
-  }, [autoSwitch, prefersDark, favNight, favDay]);
+    useConfigStore.setState({ themeMode: prefersDark ? "dark" : "light" });
+  }, [prefersDark]);
 
-  // Mirror curTheme onto :data-theme so CSS can react (e.g. legacy CSS).
+  // Probe /api/control/info exactly once (desktop-only).
   useEffect(() => {
-    if (typeof document !== "undefined") {
-      document.documentElement.setAttribute("data-theme", curTheme);
-    }
-  }, [curTheme]);
-
-  // Probe /api/control/info exactly once.
-  useEffect(() => {
-    probe();
+    if (getDesktopBridge().isDesktop) probe();
+    else useControlInfo.setState({ ready: true });
   }, [probe]);
 
   // On desktop with managed kernel, seed the kernel store on probe-ready.
@@ -81,7 +64,6 @@ export default function DefaultLayout(): ReactNode {
         color: "text.primary",
         backgroundColor: "background.default",
       }}
-      data-theme={curTheme}
     >
       {isDesktop ? <TitleBar /> : null}
       <Box sx={{ display: "flex", flex: 1, minHeight: 0 }}>
@@ -111,13 +93,12 @@ export default function DefaultLayout(): ReactNode {
   );
 }
 
-// Pull the kernel status through the lazy-loaded controlApi at runtime.
 async function controlApiGetKernelStatus() {
   const { getControlApi } = await import("@/lib/controlApi");
   try {
     const state = await getControlApi().getKernelStatus();
     useKernelStore.getState().setState(state);
   } catch {
-    // ignore — desktop shell with no kernel control host
+    // ignore
   }
 }

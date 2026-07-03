@@ -4,8 +4,6 @@ import { useConnectionsStore } from "@/stores/connections";
 import { useGlobalStore } from "@/stores/global";
 import { useLogsStore } from "@/stores/logs";
 import { useConfigStore } from "@/stores/config";
-import { isMockMode } from "@/config/global";
-import { mockConnections, mockTrafficStats, mockMemory, mockLogsList } from "./mockData";
 
 const RECONNECT_DELAY = 3000;
 
@@ -18,14 +16,15 @@ interface Sockets {
 
 let sockets: Sockets = { connections: null, traffic: null, memory: null, logs: null };
 let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
-let mockInterval: ReturnType<typeof setInterval> | null = null;
 
 function closeWs(ws: WebSocket | null): void {
   if (!ws) return;
   ws.onclose = null;
   ws.onerror = null;
   ws.onmessage = null;
-  ws.close();
+  if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) {
+    ws.close();
+  }
 }
 
 export interface BackendWebSocket {
@@ -36,7 +35,6 @@ export interface BackendWebSocket {
 
 export function useBackendWebSocket(): BackendWebSocket {
   function scheduleReconnect(): void {
-    if (isMockMode()) return;
     if (reconnectTimer) return;
     const { currentEndpoint } = useEndpointStore.getState();
     if (!currentEndpoint) return;
@@ -67,50 +65,6 @@ export function useBackendWebSocket(): BackendWebSocket {
 
   function connect(): void {
     disconnect();
-    if (isMockMode()) {
-      const g = useGlobalStore.getState();
-      const logs = useLogsStore.getState();
-      useConnectionsStore.getState().updateFromWsMsg({
-        connections: mockConnections(),
-        uploadTotal: mockTrafficStats.up,
-        downloadTotal: mockTrafficStats.down,
-      } as WsMsg);
-      g.setLatestTraffic(mockTrafficStats as TrafficData);
-      g.setLatestMemory(mockMemory as MemoryData);
-      const now = Date.now();
-      const base = mockConnections().length;
-      for (let i = 30; i >= 0; i--) {
-        const t = now - i * 1000;
-        g.addTrafficDataPoint(
-          t,
-          mockTrafficStats.down + Math.floor(Math.random() * 100000) - 50000,
-          mockTrafficStats.up + Math.floor(Math.random() * 20000) - 10000,
-        );
-        g.addMemoryDataPoint(
-          t,
-          mockMemory.inuse + Math.floor(Math.random() * 5_000_000) - 2_500_000,
-        );
-        g.addConnectionCountDataPoint(t, base + Math.floor(Math.random() * 10) - 5);
-      }
-      for (const l of mockLogsList) logs.addLog(l as Log);
-      mockInterval = setInterval(() => {
-        const t = Date.now();
-        const up = mockTrafficStats.up + Math.floor(Math.random() * 10000);
-        const down = mockTrafficStats.down + Math.floor(Math.random() * 50000);
-        useGlobalStore.getState().setLatestTraffic({ up, down });
-        useGlobalStore.getState().addTrafficDataPoint(t, down, up);
-        useGlobalStore
-          .getState()
-          .addMemoryDataPoint(
-            t,
-            mockMemory.inuse + Math.floor(Math.random() * 5_000_000) - 2_500_000,
-          );
-        useGlobalStore
-          .getState()
-          .addConnectionCountDataPoint(t, base + Math.floor(Math.random() * 10) - 5);
-      }, 1000);
-      return;
-    }
 
     sockets.connections = createWs("connections", (data) => {
       const msg = data as WsMsg;
@@ -158,10 +112,6 @@ export function useBackendWebSocket(): BackendWebSocket {
       clearTimeout(reconnectTimer);
       reconnectTimer = null;
     }
-    if (mockInterval) {
-      clearInterval(mockInterval);
-      mockInterval = null;
-    }
     closeWs(sockets.connections);
     closeWs(sockets.traffic);
     closeWs(sockets.memory);
@@ -171,7 +121,7 @@ export function useBackendWebSocket(): BackendWebSocket {
 
   function reconnectLogs(): void {
     closeWs(sockets.logs);
-    sockets.logs = isMockMode() ? null : createLogsWs();
+    sockets.logs = createLogsWs();
   }
 
   return { connect, disconnect, reconnectLogs };

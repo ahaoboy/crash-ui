@@ -2,26 +2,33 @@ import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import { formatTimeFromNow } from "@/utils/format";
 import en from "./locales/en.json";
+import cn from "./locales/cn.json";
 
-// Minimal setup: only English ships out-of-the-box so the bundle stays tiny.
-// Additional locales can be added as separate files and registered here.
-const resources = {
-  en: { translation: en },
+const resources = { en: { translation: en }, cn: { translation: cn } };
+
+function detectLang(): string {
+  const stored = localStorage.getItem("crash-lang");
+  if (stored === "en" || stored === "cn") return stored;
+  const nav = navigator.language.toLowerCase();
+  return nav.startsWith("zh") ? "cn" : "en";
+}
+
+const LANG_STORAGE_KEY = "crash-lang";
+
+const origChange = i18n.changeLanguage.bind(i18n);
+i18n.changeLanguage = (lng, ...args) => {
+  localStorage.setItem(LANG_STORAGE_KEY, lng as string);
+  return origChange(lng, ...args);
 };
 
 i18n.use(initReactI18next).init({
   resources,
-  lng: "en",
+  lng: detectLang(),
   fallbackLng: "en",
-  interpolation: {
-    // react-i18next escapes by default, so dangerousHTML would be opt-in. The
-    // time-fromNow formatter is separate; we expose it via i18n.services.
-    escapeValue: false,
-  },
+  interpolation: { escapeValue: false },
   returnNull: false,
 });
 
-// Expose time-from-now inside templates: t(time, { fromNow }) => relative.
 i18n.services.formatter?.add("fromNow", (value: number | string, lng?: string) =>
   formatTimeFromNow(value, lng),
 );

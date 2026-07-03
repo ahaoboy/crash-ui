@@ -3,6 +3,7 @@ import { Box, Button } from "@mui/material";
 import { IconAlertTriangle } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
+import { useShallow } from "zustand/shallow";
 import { useEndpointStore } from "@/stores/endpoint";
 import { useKernelStore } from "@/stores/kernel";
 import { useControlInfo } from "@/lib/controlInfo";
@@ -17,7 +18,7 @@ export default function ConnectionErrorBanner(): React.ReactElement | null {
   const ready = useControlInfo((s) => s.ready);
   const hasKernelControl = useControlInfo((s) => s.hasFeature("kernel-control"));
   const kernelStatus = useKernelStore((s) => s.state?.status);
-  const endpoint = useEndpointStore((s) => s.currentEndpoint());
+  const endpoint = useEndpointStore(useShallow((s) => s.currentEndpoint()));
   const setSelected = useEndpointStore((s) => s.setSelectedEndpoint);
   const [isError, setIsError] = useState(false);
   const [retrying, setRetrying] = useState(false);

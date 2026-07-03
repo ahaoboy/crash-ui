@@ -10,6 +10,7 @@ import {
 } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { useEffect, useState } from "react";
+import { useShallow } from "zustand/shallow";
 import { useControlInfo } from "@/lib/controlInfo";
 import { useKernelStore } from "@/stores/kernel";
 import { getControlApi } from "@/lib/controlApi";
@@ -27,7 +28,7 @@ import type {
 export default function ControlPage(): React.ReactElement {
   const { t } = useTranslation();
   const hasAgent = useControlInfo((s) => s.hasAgent);
-  const state = useKernelStore((s) => s.state);
+  const state = useKernelStore(useShallow((s) => s.state));
   const setKernel = useKernelStore((s) => s.setState);
   const [sysProxy, setSysProxy] = useState<SystemProxyState | null>(null);
   const [versions, setVersions] = useState<KernelVersions | null>(null);
