@@ -17,11 +17,11 @@ Open `http://localhost:5173` and connect to your Mihomo backend (default `http:/
 pnpm build
 ```
 
-Output in `dist/`. Deploy by editing `dist/config.js` to set the backend URL.
+Output in `dist/`.
 
 ## Deploy
 
-Replace `defaultBackendURL` in `dist/config.js`, then serve `dist/` with any static server:
+Serve `dist/` with any static server:
 
 ```bash
 npx serve dist
