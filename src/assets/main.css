@@ -1,0 +1,39 @@
+/* Minimal global styling for the crash-ui shell. MUI's CssBaseline handles most
+   of the reset; this file only adds a few cross-cutting helpers. */
+html,
+body,
+#root {
+  height: 100%;
+}
+body {
+  margin: 0;
+  overscroll-behavior-y: none;
+  font-variant-numeric: tabular-nums;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Tabular-nums for live readouts (mirrors DESIGN.md's Tabular-Numerics rule). */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* A small spinning class used by the sidebar quick-action icons. */
+@keyframes crsh-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.spin {
+  animation: crsh-spin 0.8s linear infinite;
+}
+
+/* Hide scrollbars but keep scrollability for the proxies grid. */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  scrollbar-width: none;
+}
