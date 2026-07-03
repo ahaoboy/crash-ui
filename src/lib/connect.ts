@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useEndpointStore } from "@/stores/endpoint";
 import { checkEndpointAPI } from "./api";
-import { FALLBACK_BACKEND_URL } from "@/constants";
+import { getFallbackBackendUrl } from "@/constants";
 import { getDefaultBackendURL } from "@/config/global";
 import { randomUUID, transformEndpointURL } from "@/utils/format";
 import { debug } from "@/utils/debug";
@@ -33,7 +33,7 @@ export function useConnect(formState?: FormState) {
 
   const defaultBackendURL = useMemo(() => {
     const fromEnv = getDefaultBackendURL();
-    return fromEnv || FALLBACK_BACKEND_URL;
+    return fromEnv || getFallbackBackendUrl();
   }, []);
 
   function onSuccess(id: string): void {

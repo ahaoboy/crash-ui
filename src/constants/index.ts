@@ -1,7 +1,14 @@
 export const THEMES = ["light", "dark"] as const;
 export type ThemeName = (typeof THEMES)[number];
 
-export const FALLBACK_BACKEND_URL = "http://127.0.0.1:9090";
+/** Fallback backend URL derived from the current page origin so it works
+ *  regardless of which host/IP the dashboard is served from. */
+export function getFallbackBackendUrl(): string {
+  if (typeof window !== "undefined" && window.location?.origin) {
+    return window.location.origin;
+  }
+  return "http://127.0.0.1:9090";
+}
 
 export const ROUTES = {
   Overview: "/overview",

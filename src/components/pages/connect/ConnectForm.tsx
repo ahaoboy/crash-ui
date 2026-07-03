@@ -4,7 +4,7 @@ import { IconLink, IconLock } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
 import { useConnect } from "@/lib/connect";
 import { useEndpointStore } from "@/stores/endpoint";
-import { FALLBACK_BACKEND_URL } from "@/constants";
+import { getFallbackBackendUrl } from "@/constants";
 
 interface Props {
   submitLabel: string;
@@ -181,8 +181,8 @@ const ConnectForm = forwardRef<ConnectFormHandle, Props>(function ConnectForm(
             slotProps={{ htmlInput: { list: "defaultEndpoints", autoComplete: "url" } }}
           />
           <datalist id="defaultEndpoints">
-            <option value={FALLBACK_BACKEND_URL} />
-            {defaultBackendURL && defaultBackendURL !== FALLBACK_BACKEND_URL ? (
+            <option value={getFallbackBackendUrl()} />
+            {defaultBackendURL && defaultBackendURL !== getFallbackBackendUrl() ? (
               <option value={defaultBackendURL} />
             ) : null}
             {endpointStore.endpointList.map((e) => (
