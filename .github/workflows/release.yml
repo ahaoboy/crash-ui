@@ -1,0 +1,40 @@
+name: Release
+
+permissions:
+  contents: write
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - v[0-9]+.*
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - name: Install & Build
+        run: |
+          pnpm install
+          pnpm build
+
+      - name: Package
+        run: zip -r crash-ui.zip dist/
+
+      - name: Publish Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref == 'refs/heads/main' && 'nightly' || github.ref_name }}
+          name: ${{ github.ref == 'refs/heads/main' && 'Nightly Release' || github.ref_name }}
+          files: crash-ui.zip
