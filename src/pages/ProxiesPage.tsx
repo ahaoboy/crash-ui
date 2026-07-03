@@ -33,7 +33,6 @@ export default function ProxiesPage(): React.ReactElement {
   const proxyGroupLatencyTest = useProxiesStore((s) => s.proxyGroupLatencyTest);
   const proxyLatencyTest = useProxiesStore((s) => s.proxyLatencyTest);
   const updateAllProvider = useProxiesStore((s) => s.updateAllProvider);
-  const getNowProxyNodeName = useProxiesStore((s) => s.getNowProxyNodeName);
   const getLatencyByName = useProxiesStore((s) => s.getLatencyByName);
   const isProxyGroup = useProxiesStore((s) => s.isProxyGroup);
 
@@ -185,8 +184,6 @@ export default function ProxiesPage(): React.ReactElement {
                   getLatencyByName(n, group.testUrl ?? null) !== qualityMap.NOT_CONNECTED,
               )
             : members;
-          const nowName = getNowProxyNodeName(group.name);
-
           return (
             <Box key={group.name}>
               <Box
@@ -236,7 +233,7 @@ export default function ProxiesPage(): React.ReactElement {
                     proxyName={nodeName}
                     groupName={group.name}
                     testUrl={group.testUrl ?? null}
-                    isSelected={nodeName === group.now || nodeName === nowName}
+                    isSelected={nodeName === group.now}
                     onSelect={() => void selectProxyInGroup(group, nodeName)}
                     onTest={() =>
                       void proxyLatencyTest(

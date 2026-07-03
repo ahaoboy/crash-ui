@@ -4,6 +4,7 @@ import { useConnectionsStore } from "@/stores/connections";
 import { useGlobalStore } from "@/stores/global";
 import { useLogsStore } from "@/stores/logs";
 import { useConfigStore } from "@/stores/config";
+import { debug } from "@/utils/debug";
 
 const RECONNECT_DELAY = 3000;
 
@@ -46,11 +47,16 @@ export function useBackendWebSocket(): BackendWebSocket {
 
   function createWs(path: string, onMessage: (data: unknown) => void): WebSocket | null {
     const endpoint = useEndpointStore.getState().currentEndpoint();
-    if (!endpoint) return null;
+    if (!endpoint) {
+      debug.ws.log(`createWs(${path}): no endpoint`);
+      return null;
+    }
     const wsUrl = useEndpointStore.getState().wsEndpointURL();
     const params = new URLSearchParams();
     if (endpoint.secret) params.set("token", endpoint.secret);
-    const ws = new WebSocket(`${wsUrl}/${path}?${params.toString()}`);
+    const fullUrl = `${wsUrl}/${path}?${params.toString()}`;
+    debug.ws.log(`createWs: connecting to ${path}`);
+    const ws = new WebSocket(fullUrl);
     ws.onmessage = (event) => {
       try {
         onMessage(JSON.parse(event.data));
@@ -58,12 +64,18 @@ export function useBackendWebSocket(): BackendWebSocket {
         // ignore parse errors
       }
     };
-    ws.onerror = (e) => console.error(`WebSocket error for ${path}:`, e);
-    ws.onclose = () => scheduleReconnect();
+    ws.onerror = (e) => {
+      debug.ws.error(`WebSocket error for ${path}:`, e);
+    };
+    ws.onclose = () => {
+      debug.ws.log(`WebSocket closed: ${path}, scheduling reconnect`);
+      scheduleReconnect();
+    };
     return ws;
   }
 
   function connect(): void {
+    debug.ws.log("connect: opening all WebSocket connections");
     disconnect();
 
     sockets.connections = createWs("connections", (data) => {
@@ -108,6 +120,7 @@ export function useBackendWebSocket(): BackendWebSocket {
   }
 
   function disconnect(): void {
+    debug.ws.log("disconnect: closing all WebSocket connections");
     if (reconnectTimer) {
       clearTimeout(reconnectTimer);
       reconnectTimer = null;

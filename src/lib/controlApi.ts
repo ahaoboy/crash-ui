@@ -14,6 +14,7 @@ import type {
   WebdavRestoreResult,
 } from "@/types/control";
 import { getDesktopBridge, getRuntimeConfig } from "@/config/global";
+import { debug, logError } from "@/utils/debug";
 
 export interface ControlConfig {
   base: string;
@@ -85,15 +86,56 @@ let cachedApi: ControlApi | null = null;
 export function getControlApi(): ControlApi {
   if (cachedApi) return cachedApi;
   const { base, token } = resolveControlConfig();
+  debug.ctrl.log(`getControlApi: base=${base}, hasToken=${!!token}`);
   const headers: Record<string, string> = {};
   if (token) headers.Authorization = `Bearer ${token}`;
   const client = ky.create({ prefix: base, headers, timeout: 15000 });
   cachedApi = {
     getInfo: () => client.get("info").json<ControlInfo>(),
-    getKernelStatus: () => client.get("kernel/status").json<KernelState>(),
-    startKernel: () => client.post("kernel/start").json<KernelState>(),
-    stopKernel: () => client.post("kernel/stop").json<KernelState>(),
-    restartKernel: () => client.post("kernel/restart").json<KernelState>(),
+    getKernelStatus: () =>
+      client
+        .get("kernel/status")
+        .json<KernelState>()
+        .then((r) => {
+          debug.ctrl.log(`getKernelStatus: status=${r.status}`);
+          return r;
+        }),
+    startKernel: () =>
+      client
+        .post("kernel/start")
+        .json<KernelState>()
+        .then((r) => {
+          debug.ctrl.log(`startKernel: result status=${r.status}`);
+          return r;
+        })
+        .catch((err) => {
+          logError("ctrl", "startKernel failed", err);
+          throw err;
+        }),
+    stopKernel: () =>
+      client
+        .post("kernel/stop")
+        .json<KernelState>()
+        .then((r) => {
+          debug.ctrl.log(`stopKernel: result status=${r.status}`);
+          return r;
+        })
+        .catch((err) => {
+          logError("ctrl", "stopKernel failed", err);
+          throw err;
+        }),
+    restartKernel: () =>
+      client
+        .post("kernel/restart")
+        .json<KernelState>()
+        .then((r) => {
+          debug.ctrl.log(`restartKernel: result status=${r.status}`);
+          return r;
+        })
+        .catch((err) => {
+          logError("ctrl", "restartKernel failed", err);
+          throw err;
+        }),
     logsUrl: () => (token ? `${base}/kernel/logs?token=${token}` : `${base}/kernel/logs`),
     listProfiles: () => client.get("profiles").json<ProfileMeta[]>(),
     createProfile: (body) => client.post("profiles", { json: body }).json<ProfileMeta>(),

@@ -3,6 +3,7 @@ import type { BackendVersion, Config, Proxy, ProxyProvider, Rule, RuleProvider }
 import { useEndpointStore } from "@/stores/endpoint";
 import { compareVersions, isSingBoxVersion } from "@/utils/format";
 import { useControlInfo } from "@/lib/controlInfo";
+import { debug, logError } from "@/utils/debug";
 
 const MIHOMO_REPO = "repos/MetaCubeX/mihomo";
 const VERNESONG_REPO = "repos/vernesong/mihomo";
@@ -39,8 +40,10 @@ export interface RequestClient {
 export function getRequest(): RequestClient {
   const endpoint = useEndpointStore.getState().currentEndpoint();
   if (!endpoint) {
+    debug.api.log("getRequest: no endpoint configured, requests will have no prefix");
     return ky.create({}) as unknown as RequestClient;
   }
+  debug.api.log("getRequest: using endpoint", endpoint.url);
   const headers = new Headers();
   if (endpoint.secret) headers.set("Authorization", `Bearer ${endpoint.secret}`);
   return ky.create({ prefix: endpoint.url, headers, timeout: 5000 }) as unknown as RequestClient;
@@ -79,10 +82,12 @@ export function checkEndpointAPI(url: string, secret: string): Promise<EndpointC
 }
 
 export function closeAllConnectionsAPI() {
+  debug.api.log("DELETE connections (all)");
   return getRequest().delete("connections");
 }
 
 export function closeSingleConnectionAPI(id: string) {
+  debug.api.log(`DELETE connections/${id}`);
   return getRequest().delete(`connections/${id}`);
 }
 
@@ -123,12 +128,14 @@ export function proxyProviderHealthCheckAPI(providerName: string) {
 }
 
 export function selectProxyInGroupAPI(groupName: string, proxyName: string) {
+  debug.api.log(`PUT proxies/${groupName}`, { name: proxyName });
   return getRequest().put(`proxies/${encodeURIComponent(groupName)}`, {
-    body: JSON.stringify({ name: proxyName }),
+    json: { name: proxyName },
   });
 }
 
 export function unfixProxyInGroupAPI(groupName: string) {
+  debug.api.log(`DELETE proxies/${groupName}`);
   return getRequest().delete(`proxies/${encodeURIComponent(groupName)}`);
 }
 
@@ -197,47 +204,54 @@ export async function fetchRemoteConfigAPI(url: string): Promise<void> {
 
 // ---- kernel-side actions ----
 export async function reloadConfigFileAPI(): Promise<boolean> {
+  debug.api.log("PUT configs (reload)");
   try {
     await getRequest().put("configs", {
       searchParams: { force: true },
       json: { path: "", payload: "" },
     });
     return true;
-  } catch {
+  } catch (err) {
+    logError("api", "reloadConfigFileAPI failed", err);
     return false;
   }
 }
 
 export async function restartBackendAPI(): Promise<boolean> {
+  debug.api.log("POST restart");
   try {
     await getRequest().post("restart");
     return true;
-  } catch {
+  } catch (err) {
+    logError("api", "restartBackendAPI failed", err);
     return false;
   }
 }
 
 export async function flushFakeIPAPI(): Promise<void> {
+  debug.api.log("POST cache/fakeip/flush");
   try {
     await getRequest().post("cache/fakeip/flush");
-  } catch {
-    // ignore
+  } catch (err) {
+    logError("api", "flushFakeIPAPI failed", err);
   }
 }
 
 export async function flushDNSCacheAPI(): Promise<void> {
+  debug.api.log("POST cache/dns/flush");
   try {
     await getRequest().post("cache/dns/flush");
-  } catch {
-    // ignore
+  } catch (err) {
+    logError("api", "flushDNSCacheAPI failed", err);
   }
 }
 
 export async function updateGEODatabasesAPI(): Promise<void> {
+  debug.api.log("POST configs/geo");
   try {
     await getRequest().post("configs/geo");
-  } catch {
-    // ignore
+  } catch (err) {
+    logError("api", "updateGEODatabasesAPI failed", err);
   }
 }
 

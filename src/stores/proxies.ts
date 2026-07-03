@@ -15,6 +15,7 @@ import {
 import { useConfigStore } from "./config";
 import { useConnectionsStore } from "./connections";
 import { useNodeRecommendationStore } from "./nodeRecommendation";
+import { debug, logError } from "@/utils/debug";
 
 export interface ProxyNodeView {
   name: string;
@@ -272,15 +273,32 @@ export const useProxiesStore = create<ProxiesStoreState>()(
         },
 
         selectProxyInGroup: async (proxy, proxyName) => {
-          await selectProxyInGroupAPI(proxy.name, proxyName);
-          await get().fetchProxies();
-          await closeConnectionsThroughGroup(proxy.name);
+          debug.store.log(`selectProxyInGroup: group=${proxy.name} → proxy=${proxyName}`);
+          try {
+            await selectProxyInGroupAPI(proxy.name, proxyName);
+            debug.store.log(`selectProxyInGroup: API success, re-fetching proxies`);
+            await get().fetchProxies();
+            await closeConnectionsThroughGroup(proxy.name);
+          } catch (err) {
+            logError(
+              "store",
+              `selectProxyInGroup failed: group=${proxy.name} proxy=${proxyName}`,
+              err,
+            );
+            throw err;
+          }
         },
 
         unfixProxyInGroup: async (groupName) => {
-          await unfixProxyInGroupAPI(groupName);
-          await get().fetchProxies();
-          await closeConnectionsThroughGroup(groupName);
+          debug.store.log(`unfixProxyInGroup: group=${groupName}`);
+          try {
+            await unfixProxyInGroupAPI(groupName);
+            await get().fetchProxies();
+            await closeConnectionsThroughGroup(groupName);
+          } catch (err) {
+            logError("store", `unfixProxyInGroup failed: group=${groupName}`, err);
+            throw err;
+          }
         },
 
         getNowProxyNodeName: getNowProxyNodeNameCore,

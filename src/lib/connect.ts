@@ -5,6 +5,7 @@ import { checkEndpointAPI } from "./api";
 import { FALLBACK_BACKEND_URL } from "@/constants";
 import { getDefaultBackendURL } from "@/config/global";
 import { randomUUID, transformEndpointURL } from "@/utils/format";
+import { debug } from "@/utils/debug";
 
 export type ProbeState = "idle" | "probing" | "unreachable";
 export type EndpointError = "mixed_content" | "auth_error" | "network_error" | null;
@@ -52,11 +53,14 @@ export function useConnect(formState?: FormState) {
     }
     try {
       const transformedURL = transformEndpointURL(url);
+      debug.connect.log(`connect: probing ${transformedURL}`);
       const err = await checkEndpointAPI(transformedURL, secret);
       if (err) {
+        debug.connect.error(`connect: probe failed for ${transformedURL}: ${err}`);
         if (!silent) setEndpointError(err);
         return false;
       }
+      debug.connect.log(`connect: probe success for ${transformedURL}`);
       if (!shouldNavigate || shouldNavigate()) {
         const list = [...endpointStore.endpointList];
         const existing = list.find((e) => e.url === transformedURL);
