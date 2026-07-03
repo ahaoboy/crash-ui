@@ -30,7 +30,7 @@ jobs:
           pnpm build
 
       - name: Package
-        run: cd dist && zip -r ../crash-ui.zip .
+        run: cd dist && zip ../crash-ui.zip index.html
 
       - name: Publish Release
         uses: softprops/action-gh-release@v2

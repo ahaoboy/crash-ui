@@ -85,7 +85,7 @@ export default function ControlPage(): React.ReactElement {
               useFlexGap
             >
               <Chip
-                label={state?.status ?? "unknown"}
+                label={state?.status ? t(`kernel.${state.status}`, state.status) : t("unknown")}
                 color={state?.status === "running" ? "success" : "default"}
               />
               <MuiButton
@@ -94,7 +94,7 @@ export default function ControlPage(): React.ReactElement {
                 disabled={state?.status === "starting"}
                 onClick={async () => setKernel(await getControlApi().startKernel())}
               >
-                Start
+                {t("start")}
               </MuiButton>
               <MuiButton
                 size="small"
@@ -103,20 +103,20 @@ export default function ControlPage(): React.ReactElement {
                 disabled={state?.status === "stopping"}
                 onClick={async () => setKernel(await getControlApi().stopKernel())}
               >
-                Stop
+                {t("stop")}
               </MuiButton>
               <MuiButton
                 size="small"
                 variant="outlined"
                 onClick={async () => setKernel(await getControlApi().restartKernel())}
               >
-                Restart
+                {t("restart")}
               </MuiButton>
             </Stack>
             {versions ? (
               <Box sx={{ mt: 2, display: "flex", gap: 1, flexWrap: "wrap", alignItems: "center" }}>
                 <Typography variant="caption" color="text.secondary">
-                  versions:
+                  {t("versions")}:
                 </Typography>
                 {versions.versions.map((v) => (
                   <Chip
@@ -151,7 +151,7 @@ export default function ControlPage(): React.ReactElement {
                     setSysProxy(await getControlApi().setSysProxy({ enabled: !sysProxy.enabled }))
                   }
                 >
-                  Toggle
+                  {t("toggle")}
                 </MuiButton>
               </Box>
             </CardContent>

@@ -91,13 +91,13 @@ export default function RulesPage(): React.ReactElement {
         <SelectField
           select
           size="small"
-          label="sort"
+          label={t("sort")}
           value={ordering}
           onChange={(e) => setOrdering(e.target.value as RULES_ORDERING_TYPE)}
         >
           {RULES_ORDERING_TYPE_ORDER.map((o) => (
             <MenuItem key={String(o)} value={o as unknown as string}>
-              {o}
+              {t(String(o))}
             </MenuItem>
           ))}
         </SelectField>
@@ -107,18 +107,18 @@ export default function RulesPage(): React.ReactElement {
           exclusive
           onChange={(_, v) => v && useConfigStore.setState({ rulesStatusFilter: v })}
         >
-          <ToggleButton value="all">All</ToggleButton>
-          <ToggleButton value="enabled">Enabled</ToggleButton>
-          <ToggleButton value="disabled">Disabled</ToggleButton>
+          <ToggleButton value="all">{t("all")}</ToggleButton>
+          <ToggleButton value="enabled">{t("enabled")}</ToggleButton>
+          <ToggleButton value="disabled">{t("disabled")}</ToggleButton>
         </ToggleButtonGroup>
-        <Chip label={`Types: ${typesFilter.length}`} onClick={resetFilters} />
-        <Chip label={`Policies: ${policiesFilter.length}`} />
+        <Chip label={`${t("typesCount")}: ${typesFilter.length}`} onClick={resetFilters} />
+        <Chip label={`${t("policiesCount")}: ${policiesFilter.length}`} />
       </Stack>
 
       <Card variant="outlined" sx={{ mb: 2 }}>
         <CardContent>
           <Typography variant="overline" color="text.secondary">
-            Type facets
+            {t("typeFacets")}
           </Typography>
           <Stack direction="row" spacing={1} sx={{ mt: 1, flexWrap: "wrap" }}>
             {facets.types.map((f) => (
@@ -147,7 +147,7 @@ export default function RulesPage(): React.ReactElement {
               <TableCell>{t("type")}</TableCell>
               <TableCell>{t("host")}</TableCell>
               <TableCell>{t("rules")}</TableCell>
-              <TableCell align="right">Hits</TableCell>
+              <TableCell align="right">{t("hits")}</TableCell>
               <TableCell align="right">{t("close")}</TableCell>
             </TableRow>
           </TableHead>
@@ -173,7 +173,7 @@ export default function RulesPage(): React.ReactElement {
                       await toggleRuleDisabledAPI(r.index, disabled);
                       await updateRules();
                     }}
-                    title={r.extra?.disabled ? "Enable" : "Disable"}
+                    title={r.extra?.disabled ? t("enable") : t("disable")}
                   >
                     {r.extra?.disabled ? <IconBellOff size={14} /> : <IconBell size={14} />}
                   </IconButton>
@@ -201,7 +201,7 @@ export default function RulesPage(): React.ReactElement {
             />
           ))}
           <Chip
-            label="Update all"
+            label={t("updateAll")}
             variant="outlined"
             sx={{ ml: 1, mt: 1 }}
             onClick={async () => {

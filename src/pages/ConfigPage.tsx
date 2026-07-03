@@ -87,7 +87,7 @@ export default function ConfigPage(): React.ReactElement {
         </Card>
         <Card variant="outlined">
           <CardContent sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
-            <ConfigTitle title="Kernel" />
+            <ConfigTitle title={t("kernelTitle")} />
             <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
               <button
                 onClick={() =>
@@ -95,7 +95,7 @@ export default function ConfigPage(): React.ReactElement {
                 }
                 disabled={actions.reloading}
               >
-                Reload config
+                {t("reloadConfig")}
               </button>
               <button
                 onClick={async () => {
@@ -106,11 +106,11 @@ export default function ConfigPage(): React.ReactElement {
                 }}
                 disabled={actions.restarting}
               >
-                Restart core
+                {t("restartCore")}
               </button>
-              <button onClick={() => void actions.flushFakeIP()}>Flush FakeIP</button>
-              <button onClick={() => void actions.flushDNS()}>Flush DNS</button>
-              <button onClick={() => void actions.updateGEO()}>Update GEO DBs</button>
+              <button onClick={() => void actions.flushFakeIP()}>{t("flushFakeIP")}</button>
+              <button onClick={() => void actions.flushDNS()}>{t("flushDNS")}</button>
+              <button onClick={() => void actions.updateGEO()}>{t("updateGeoDBs")}</button>
             </Box>
           </CardContent>
         </Card>

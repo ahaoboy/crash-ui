@@ -153,13 +153,13 @@ export default function ProxiesPage(): React.ReactElement {
         />
         <TextField
           size="small"
-          placeholder="filter (by stored default)"
+          placeholder={t("filterByStoredDefault")}
           value={nameFilter}
           onChange={(e) => useConfigStore.setState({ proxiesGroupNameFilter: e.target.value })}
           sx={{ minWidth: 200 }}
         />
         <Chip
-          label={hideUnavailable ? "show all" : "hide unavailable"}
+          label={hideUnavailable ? t("showAllProxies") : t("hideUnAvailableProxies")}
           onClick={() => useConfigStore.setState({ hideUnAvailableProxies: !hideUnavailable })}
         />
       </Box>
@@ -225,7 +225,7 @@ export default function ProxiesPage(): React.ReactElement {
                     onClick={() => void fetchProxies()}
                     startIcon={<IconReload size={14} />}
                   >
-                    Reload
+                    {t("reload")}
                   </MuiButton>
                 </Stack>
               </Box>

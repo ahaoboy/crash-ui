@@ -114,13 +114,13 @@ export default function ConnectionsPage(): React.ReactElement {
             color="warning"
             onClick={() => void closeAllConnectionsAPI()}
           >
-            Close all
+            {t("closeAll")}
           </MuiButton>
         </Stack>
       </Box>
       <Stack direction="row" spacing={1} sx={{ mb: 1 }}>
-        <Chip label={`Active: ${active.length}`} />
-        <Chip label={`Closed: ${closed.length}`} />
+        <Chip label={`${t("active")}: ${active.length}`} />
+        <Chip label={`${t("closed")}: ${closed.length}`} />
       </Stack>
       <TableContainer component={Card} variant="outlined">
         <Table
