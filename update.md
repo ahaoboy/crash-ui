@@ -14,6 +14,30 @@ equivalent here → record it in `CHANGELOG.md`.
 > variables defined in Step 0, and the baseline hash is read from `CHANGELOG.md` (the single
 > source of truth).
 
+### Shell compatibility
+
+The snippets below are POSIX/bash. This machine's integrated terminal runs **fish**, where two
+things differ:
+
+| bash | fish |
+| --- | --- |
+| `$?` | `$status` |
+| `export X=1` | `set -x X 1` |
+| `VAR=x cmd` | `env VAR=x cmd` |
+
+Everything else used here (`$(...)`, `\` line continuation, `${VAR:-default}`, redirection)
+works unchanged. If a command errors with a `fish:` prefix, translate it before retrying.
+
+> Terminal output capture can be unreliable for long-running commands. When a command produces a
+> lot of output, redirect it to a file (e.g. `> .upstream/lint.txt 2>&1`) and read the file.
+> Never pipe an interactive command through `head`/`tail`/`grep`.
+
+### Prerequisites
+
+```bash
+pnpm install        # required before lint/build; the repo may have no node_modules yet
+```
+
 ---
 
 ## 0. Metadata
@@ -53,11 +77,21 @@ UPSTREAM_DIR="$(cd "$UPSTREAM_DIR" && pwd)"
 LAST_SYNC_HASH="$(grep -m1 -oE '^## [0-9]{4}-[0-9]{2}-[0-9]{2} — [0-9a-f]{7,40}' \
   "$REPO_DIR/CHANGELOG.md" | grep -oE '[0-9a-f]{7,40}$')"
 
-printf 'UPSTREAM_DIR=%s\nREPO_DIR=%s\nLAST_SYNC_HASH=%s\n' \
-  "$UPSTREAM_DIR" "$REPO_DIR" "$LAST_SYNC_HASH"
+# Scratch directory for diff artifacts and command logs (git-ignored).
+SCRATCH="$REPO_DIR/.upstream"
+mkdir -p "$SCRATCH"
+
+printf 'UPSTREAM_DIR=%s\nREPO_DIR=%s\nLAST_SYNC_HASH=%s\nSCRATCH=%s\n' \
+  "$UPSTREAM_DIR" "$REPO_DIR" "$LAST_SYNC_HASH" "$SCRATCH"
 ```
 
 If `LAST_SYNC_HASH` is empty, the `CHANGELOG.md` heading format is wrong — fix it before continuing.
+
+Fish equivalent for the baseline line:
+
+```fish
+set LAST_SYNC_HASH (grep -m1 -oE '^## [0-9]{4}-[0-9]{2}-[0-9]{2} — [0-9a-f]{7,40}' $REPO_DIR/CHANGELOG.md | grep -oE '[0-9a-f]{7,40}$')
+```
 
 ### Step 1: Pull the latest upstream code
 
@@ -76,34 +110,38 @@ Only look at `packages/ui` to avoid noise from CI / Docker / release commits.
 
 ```bash
 cd "$UPSTREAM_DIR"
-git diff --stat "$LAST_SYNC_HASH"..HEAD -- packages/ui
+git diff --stat "$LAST_SYNC_HASH"..HEAD -- packages/ui > "$SCRATCH/stat.txt"
+git log --oneline "$LAST_SYNC_HASH"..HEAD -- packages/ui > "$SCRATCH/commits.txt"
+tail -1 "$SCRATCH/stat.txt"; wc -l "$SCRATCH/commits.txt"
 ```
 
-**Then view the full diff:**
+**Then write focused diff files.** A full `packages/ui` diff is easily 10k+ lines, so split it by
+layer and read the files instead of dumping them to the terminal:
 
 ```bash
 cd "$UPSTREAM_DIR"
-git diff "$LAST_SYNC_HASH"..HEAD -- packages/ui > "$REPO_DIR/.upstream-ui.diff"
+
+# Everything (fallback reference)
+git diff "$LAST_SYNC_HASH"..HEAD -- packages/ui > "$SCRATCH/ui.diff"
+
+# Logic layer: stores / types / utils / composables / constants — read this first
+git diff "$LAST_SYNC_HASH"..HEAD -- \
+  packages/ui/stores packages/ui/types packages/ui/utils \
+  packages/ui/composables packages/ui/constants > "$SCRATCH/logic.diff"
+
+# Pages, components and layouts
+git diff "$LAST_SYNC_HASH"..HEAD -- \
+  packages/ui/pages packages/ui/components packages/ui/layouts > "$SCRATCH/pages.diff"
+
+# i18n strings
+git diff "$LAST_SYNC_HASH"..HEAD -- packages/ui/i18n/locales > "$SCRATCH/i18n.diff"
 ```
 
-**Group by directory (more practical when there are many files):**
+Then work through them in this order: `stat.txt` → `commits.txt` → `logic.diff` → `pages.diff` →
+`i18n.diff` → `ui.diff` (only for anything still unexplained).
 
-```bash
-# Logic layer only: stores / types / utils / composables / constants
-git diff "$LAST_SYNC_HASH"..HEAD -- packages/ui/stores packages/ui/types \
-  packages/ui/utils packages/ui/composables packages/ui/constants
-
-# Pages and components only
-git diff "$LAST_SYNC_HASH"..HEAD -- packages/ui/pages packages/ui/components packages/ui/layouts
-
-# i18n strings only
-git diff "$LAST_SYNC_HASH"..HEAD -- packages/ui/i18n/locales
-
-# List the upstream commits involved (with messages, to help prioritize)
-git log --oneline "$LAST_SYNC_HASH"..HEAD -- packages/ui
-```
-
-> `.upstream-ui.diff` is ignored by `.gitignore`. It is a local temporary file — do not commit it.
+> Everything under `.upstream/` is git-ignored scratch space. Never commit it; delete it before
+> committing (Step 7).
 
 ### Step 3: Decide what needs to be synced
 
@@ -125,16 +163,46 @@ Decision rules:
   Docker, CI, `__tests__`, `e2e`, `public/config.js`, `monaco-setup`, and desktop (`desktop-*`)
   implementations — unless they expose a new API contract.
 
+#### Special cases to watch for
+
+These came up in past syncs and are easy to miss:
+
+- **HTTP status handling**: a `DELETE` returning `204 No Content` must not chain `.json()` —
+  parse only responses that have a body.
+- **Removed / renamed persisted state**: this repo persists Zustand stores to `localStorage`. When
+  upstream removes or renames a persisted field, add a `version` + `migrate` to the persist config
+  so existing users' settings carry over instead of silently resetting. Also delete retired fields.
+- **Removed enum members**: dropping a value from an enum also requires removing it from the
+  `*_ORDER` array, its i18n keys, and any persisted-state migration.
+- **Both locales**: every i18n change must be applied to `en.json` **and** `cn.json`, and keys
+  removed upstream must be removed here too (grep for them afterwards).
+- **Timeouts**: upstream may raise per-request timeouts for slow operations (profile validate /
+  activate). Mirror the explicit `timeout` options rather than relying on the 15s default.
+- **Error surfacing**: upstream has a helper to unwrap nested H3/ky error payloads. Reuse the
+  equivalent (`src/utils/controlError.ts`) instead of `e.message`.
+- **New `ControlFeature` values**: add them to the union in `src/types/control.ts` even if the
+  feature itself is not implemented here, so feature gating stays type-safe.
+
 ### Step 4: Implement the changes in this repo
 
 - Use the equivalent React + MUI + Zustand approach; do not copy Vue code verbatim.
+- Prefer precise, surgical edits (search for the symbol, replace the minimal block). Do not
+  rewrite whole files just to match upstream structure.
 - Validate after changes:
 
 ```bash
 cd "$REPO_DIR"
-pnpm lint
-pnpm build
+pnpm lint  > "$SCRATCH/lint.txt"  2>&1; echo "EXIT=$?" >> "$SCRATCH/lint.txt"
+pnpm build > "$SCRATCH/build.txt" 2>&1; echo "EXIT=$?" >> "$SCRATCH/build.txt"
+tail -3 "$SCRATCH/lint.txt" "$SCRATCH/build.txt"
 ```
+
+Fish users: replace `$?` with `$status`.
+
+`pnpm build` runs `tsc -b && vite build && npm run icon`, so it catches type errors as well as
+bundle failures. Both must exit 0 before continuing.
+
+Then run the [verification checklist](#3-verification-checklist).
 
 ### Step 5: Write to `CHANGELOG.md`
 
@@ -148,18 +216,23 @@ Record format:
 ```markdown
 ## YYYY-MM-DD — <NEW_HASH short form>
 
-- Upstream range: `<LAST_SYNC_HASH>` → `<NEW_HASH>` (`packages/ui`)
-- Summary: <what upstream did>
+- Upstream range: `<LAST_SYNC_HASH>` → `<NEW_HASH>` (`packages/ui`, <files> files, +<adds>/-<dels>)
+- Summary: <what upstream did, with PR numbers when known>
 - Changes in this repo:
   - `src/xxx/yyy.ts`: <what changed>
 - Not synced: <what was explicitly ignored and why>
 ```
+
+The file/line counts come from `tail -1 "$SCRATCH/stat.txt"` (Step 2).
 
 - If **no changes are needed**, write:
   `Changes in this repo: none (upstream changes are framework/test/style only and do not affect behavior)`.
 - Use the sync date for the date and the short hash of the upstream commit you synced to.
 - The heading hash must be a real, full-or-short hex hash — Step 0 parses it back automatically,
   so do not leave placeholders behind.
+- List every touched file, one bullet each, so the next run can see what was already handled.
+- Under **Not synced**, be specific about what was skipped and why (framework/desktop-only, or a
+  feature this dashboard does not implement). This prevents re-litigating the same diff next time.
 
 ### Step 6: Record the new baseline
 
@@ -176,13 +249,31 @@ Use this `NEW_HASH` as the heading of the entry from Step 5. `CHANGELOG.md` is t
 of truth, so `LAST_SYNC_HASH` in Step 0 picks it up automatically next time — there is nothing to
 update in this document.
 
-### Step 7: Commit
+### Step 7: Clean up and commit
+
+Remove the scratch directory, then review what you are about to commit:
 
 ```bash
 cd "$REPO_DIR"
-git add -A
-git commit -m "chore: sync upstream ui to $(cd "$UPSTREAM_DIR" && git rev-parse --short HEAD)"
+rm -rf "$SCRATCH"
+git status --short
 ```
+
+Commit in **two commits** so docs and code are separable:
+
+```bash
+# 1. Documentation only (only when update.md / README / CHANGELOG were edited)
+git add update.md README.md CHANGELOG.md .gitignore
+git commit -m "docs: update upstream sync guide"
+
+# 2. The actual sync
+NEW_SHORT="$(cd "$UPSTREAM_DIR" && git rev-parse --short HEAD)"
+git add -A
+git commit -m "chore: sync upstream ui to $NEW_SHORT"
+```
+
+If Step 5 concluded no code changes were needed, commit just the `CHANGELOG.md` entry (fold it
+into the docs commit) so the baseline still advances.
 
 ---
 
@@ -204,7 +295,9 @@ git commit -m "chore: sync upstream ui to $(cd "$UPSTREAM_DIR" && git rev-parse 
 | `utils/connectionCells.ts` | `src/utils/connectionCells.ts` | Connection table |
 | `utils/nodeScoring.ts` | `src/utils/nodeScoring.ts` | Node scoring |
 | `utils/latencyTrend.ts` | `src/utils/latencyTrend.ts` | Latency trend |
-| `utils/routingResources.ts` | `src/utils/rules.ts` / `src/utils/proxy.ts` | Routing resources |
+| `utils/routingResources.ts` | `src/utils/routingResources.ts` | Routing resources |
+| `utils/controlError.ts` | `src/utils/controlError.ts` | Control error unwrapping |
+| `components/connections/quickFilter.ts` | `src/utils/quickFilter.ts` | Literal quick-filter terms |
 | `utils/appearanceDb.ts` | `src/utils/appearanceDb.ts` | Appearance storage |
 | `utils/db.ts` | `src/utils/db.ts` | Local storage |
 | `constants/index.ts` | `src/constants/index.ts` | Constants |
@@ -219,7 +312,30 @@ Present upstream but not implemented here: `config-editor` (Monaco), `NetworkTop
 
 ---
 
-## 3. FAQ
+## 3. Verification Checklist
+
+Run after implementing, before writing the CHANGELOG entry:
+
+- [ ] `pnpm lint` exits 0 (`tail -3 "$SCRATCH/lint.txt"`)
+- [ ] `pnpm build` exits 0 (`tail -3 "$SCRATCH/build.txt"`)
+- [ ] No leftover references to removed identifiers — grep the repo for each removed symbol
+      (enum members, store fields, i18n keys):
+
+      ```bash
+      cd "$REPO_DIR"
+      grep -rn 'REMOVED_SYMBOL' src/ || echo "clean"
+      ```
+
+- [ ] Every renamed/removed persisted store field has a `version` + `migrate` in its persist config
+- [ ] `en.json` and `cn.json` have the same key set for every key you touched
+- [ ] New `ControlFeature` values are in the union type even if unimplemented
+- [ ] `get_errors` (or `tsc -b`) reports no errors in every edited file
+- [ ] `.upstream/` scratch directory deleted
+- [ ] `CHANGELOG.md` entry is the **newest** entry (directly under the first `---`)
+
+---
+
+## 4. FAQ
 
 **Q: The diff is huge and I cannot finish it in one pass.**
 Sync the "must sync" items first (API / types / constants / algorithms), record the "should sync"
@@ -232,3 +348,15 @@ Sync only the logic and behavior; do not copy templates or styles.
 **Q: How do I confirm upstream API field changes?**
 Check the diff of `types/control.ts`, `stores/*`, and `composables/use*Api.ts` first, and compare
 against the [Mihomo API docs](https://wiki.metacubex.one/api/).
+
+**Q: A command produced no output or garbled output in the terminal.**
+Redirect it to a file under `$SCRATCH` and read the file. Very long `git diff` output is not
+useful on the terminal — always write it to a file and read it in chunks.
+
+**Q: `pnpm lint` fails with "installing dependencies" / file-in-use errors.**
+Run `pnpm install` first. On Windows, a stale editor or build process can lock files in
+`node_modules`; close it and retry.
+
+**Q: The build passes but the feature does not work.**
+Check whether the upstream change depends on a desktop bridge / agent capability that this
+lightweight dashboard does not have, and move it to "Not synced" rather than half-implementing it.

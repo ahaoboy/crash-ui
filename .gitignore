@@ -1,5 +1,6 @@
 pnpm-lock.yaml
-# Temporary upstream sync diff
+# Upstream sync scratch space (diffs, command logs)
+.upstream/
 .upstream-ui.diff
 # Logs
 logs
