@@ -45,7 +45,6 @@ export interface ConfigStoreState {
   proxiesOrderingType: PROXIES_ORDERING_TYPE;
   proxiesDisplayMode: PROXIES_DISPLAY_MODE;
   proxiesCardSize: PROXIES_CARD_SIZE;
-  stickyGroupHeader: boolean;
   hideUnAvailableProxies: boolean;
   urlForLatencyTest: string;
   latencyTestUrlSource: "core" | "dashboard";
@@ -66,7 +65,10 @@ export interface ConfigStoreState {
   connectionsTableSize: TableSize;
   connectionsTableColumnVisibility: ConnectionsTableColumnVisibility;
   connectionsTableColumnOrder: ConnectionsTableColumnOrder;
-  quickFilterRegex: string;
+  /** Literal, case-insensitive quick-filter terms (pipe/comma/newline separated).
+   *  Migrated from the legacy `quickFilterRegex` field by the persist migration
+   *  so existing user preferences carry over. */
+  quickFilterText: string;
 
   // Logs
   logsTableSize: TableSize;
@@ -110,7 +112,6 @@ export const useConfigStore = create<ConfigStoreState>()(
       proxiesOrderingType: DEFAULT_ORDERING,
       proxiesDisplayMode: DEFAULT_DISPLAY,
       proxiesCardSize: DEFAULT_CARD,
-      stickyGroupHeader: false,
       hideUnAvailableProxies: false,
       urlForLatencyTest: "https://www.gstatic.com/generate_204",
       latencyTestUrlSource: "core",
@@ -131,7 +132,7 @@ export const useConfigStore = create<ConfigStoreState>()(
       connectionsTableColumnOrder: [
         ...CONNECTIONS_TABLE_INITIAL_COLUMN_ORDER,
       ] as ConnectionsTableColumnOrder,
-      quickFilterRegex: "DIRECT|direct|dns-out",
+      quickFilterText: "DIRECT|direct|dns-out",
 
       logsTableSize: DEFAULT_TABLE_SIZE,
       logLevel: DEFAULT_LOG_LEVEL,
@@ -153,7 +154,6 @@ export const useConfigStore = create<ConfigStoreState>()(
           proxiesOrderingType: DEFAULT_ORDERING,
           proxiesDisplayMode: DEFAULT_DISPLAY,
           proxiesCardSize: DEFAULT_CARD,
-          stickyGroupHeader: false,
           hideUnAvailableProxies: false,
           urlForLatencyTest: "https://www.gstatic.com/generate_204",
           latencyTestUrlSource: "core",
@@ -203,6 +203,25 @@ export const useConfigStore = create<ConfigStoreState>()(
     }),
     {
       name: "crash-config",
+      // v1: removed `chipsMode` (retired proxies display mode) and `stickyGroupHeader`;
+      // renamed `quickFilterRegex` -> `quickFilterText` (now literal terms, not a regex).
+      version: 1,
+      migrate: (persisted) => {
+        const state = persisted as Record<string, unknown>;
+        const validDisplayModes = new Set<string>(Object.values(DISPLAY_MODE));
+        if (
+          typeof state.proxiesDisplayMode === "string" &&
+          !validDisplayModes.has(state.proxiesDisplayMode)
+        ) {
+          state.proxiesDisplayMode = DEFAULT_DISPLAY;
+        }
+        if (state.quickFilterText === undefined && typeof state.quickFilterRegex === "string") {
+          state.quickFilterText = state.quickFilterRegex;
+        }
+        delete state.quickFilterRegex;
+        delete state.stickyGroupHeader;
+        return state as unknown as ConfigStoreState;
+      },
       partialize: (s) => ({
         themeMode: s.themeMode,
         proxiesPreviewType: s.proxiesPreviewType,
@@ -210,7 +229,6 @@ export const useConfigStore = create<ConfigStoreState>()(
         proxiesOrderingType: s.proxiesOrderingType,
         proxiesDisplayMode: s.proxiesDisplayMode,
         proxiesCardSize: s.proxiesCardSize,
-        stickyGroupHeader: s.stickyGroupHeader,
         hideUnAvailableProxies: s.hideUnAvailableProxies,
         urlForLatencyTest: s.urlForLatencyTest,
         latencyTestUrlSource: s.latencyTestUrlSource,
@@ -227,7 +245,7 @@ export const useConfigStore = create<ConfigStoreState>()(
         connectionsTableSize: s.connectionsTableSize,
         connectionsTableColumnVisibility: s.connectionsTableColumnVisibility,
         connectionsTableColumnOrder: s.connectionsTableColumnOrder,
-        quickFilterRegex: s.quickFilterRegex,
+        quickFilterText: s.quickFilterText,
         logsTableSize: s.logsTableSize,
         logLevel: s.logLevel,
         logMaxRows: s.logMaxRows,

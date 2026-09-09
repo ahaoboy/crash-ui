@@ -86,16 +86,26 @@ function findPositiveLatency(m: Record<string, number> | undefined): number | un
   return undefined;
 }
 
+function hasSuccessfulLatency(history: Proxy["history"] | undefined): boolean {
+  return history?.some(({ delay }) => delay > 0) ?? false;
+}
+
+// Successful latency series for the requested url, else any successful series
+// the node recorded under another url. A non-empty series can still contain
+// only failed probes (delay 0); treating that as usable makes the stability bar
+// stay gray while the pill falls back to a provider reading. If nothing
+// succeeded anywhere, keep the requested failure history so the UI can still
+// show those attempts.
 function pickLatencyHistory(
   histories: Record<string, Proxy["history"] | undefined>,
   finalTestUrl: string,
 ): Proxy["history"] | undefined {
   const exact = histories[finalTestUrl];
-  if (exact?.length) return exact;
+  if (hasSuccessfulLatency(exact)) return exact;
   for (const series of Object.values(histories)) {
-    if (series?.length) return series;
+    if (hasSuccessfulLatency(series)) return series;
   }
-  return undefined;
+  return exact?.length ? exact : undefined;
 }
 
 function getLatencyFromProxy(

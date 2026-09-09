@@ -27,8 +27,18 @@ export interface ProfileMeta {
   enabled?: boolean;
   url?: string;
   userAgent?: string;
+  /** minutes; remote-only. Drives the AIO server's auto-update scheduler
+   *  (0 or undefined => auto-update off). */
+  updateInterval?: number;
+  baseProfileId?: string;
+  managedBy?: "visual-editor";
+  editorStatus?: "clean" | "conflicted";
   updatedAt: number;
   subscriptionInfo?: ProfileSubscriptionInfo;
+  /** Derived (not stored): true on the base profile the agent recorded as the
+   *  active one in state.json. Lets the profiles page persistently mark the
+   *  active card instead of losing the badge on reload. */
+  active?: boolean;
 }
 
 export type ControlFeature =
@@ -41,6 +51,7 @@ export type ControlFeature =
   | "webdav-backup"
   | "runtime-config"
   | "config-sections"
+  | "visual-config-editor"
   | "tun";
 
 export interface ControlInfo {

@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import type { KernelState } from "@/types/control";
+import { getControlApi } from "@/lib/controlApi";
 
 export interface KernelLogLine {
   stream: "stdout" | "stderr";
@@ -17,6 +18,10 @@ export interface KernelStoreState {
   clearLogs: () => void;
   setState: (s: KernelState | null) => void;
   setConnected: (b: boolean) => void;
+  /** Restore the last-known-good .bak config and restart the kernel. */
+  rollback: () => Promise<void>;
+  /** Reset to a minimal config and restart. */
+  recover: () => Promise<void>;
   connectLogs: (url: () => string) => () => void;
 }
 
@@ -32,6 +37,12 @@ export const useKernelStore = create<KernelStoreState>((set, get) => ({
   clearLogs: () => set({ logs: [] }),
   setState: (s) => set({ state: s }),
   setConnected: (b) => set({ connected: b }),
+  rollback: async () => {
+    set({ state: await getControlApi().rollbackKernel() });
+  },
+  recover: async () => {
+    set({ state: await getControlApi().recoverKernel() });
+  },
   connectLogs: (url) => {
     const es = new EventSource(url());
     set({ connected: true });

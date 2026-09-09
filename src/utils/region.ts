@@ -61,10 +61,21 @@ export function codeToFlag(code: string): string {
     .join("");
 }
 
+function isAsciiLetter(char: string | undefined): boolean {
+  if (!char) return false;
+  const lower = char.toLowerCase();
+  return lower >= "a" && lower <= "z";
+}
+
 export function parseNodeRegion(name: string): string | null {
   const flag = leadingFlagToCode(name);
   if (flag) return flag;
-  const code = name.match(/^([A-Z]{2})[_\-\s]/i)?.[1]?.toUpperCase();
+  const separator = name[2];
+  const hasSeparator = separator === "_" || separator === "-" || separator?.trim() === "";
+  const code =
+    isAsciiLetter(name[0]) && isAsciiLetter(name[1]) && hasSeparator
+      ? name.slice(0, 2).toUpperCase()
+      : undefined;
   return code && ISO_CODES.has(code) ? code : null;
 }
 
@@ -99,7 +110,7 @@ export function splitLeadingFlag(name: string): { flag: string; rest: string } {
   const matched = name.match(re)?.[0] ?? "";
   if (!matched) return { flag: "", rest: name };
   return {
-    flag: matched.replace(/\s+$/u, ""),
+    flag: matched.trimEnd(),
     rest: name.slice(matched.length),
   };
 }
@@ -107,11 +118,11 @@ export function splitLeadingFlag(name: string): { flag: string; rest: string } {
 export function encodeSvgForDataUri(svg: string): string {
   return svg
     .replace("<svg", svg.includes("xmlns") ? "<svg" : '<svg xmlns="http://www.w3.org/2000/svg"')
-    .replace(/"/g, "'")
-    .replace(/%/g, "%25")
-    .replace(/#/g, "%23")
-    .replace(/\{/g, "%7B")
-    .replace(/\}/g, "%7D")
-    .replace(/</g, "%3C")
-    .replace(/>/g, "%3E");
+    .replaceAll('"', "'")
+    .replaceAll("%", "%25")
+    .replaceAll("#", "%23")
+    .replaceAll("{", "%7B")
+    .replaceAll("}", "%7D")
+    .replaceAll("<", "%3C")
+    .replaceAll(">", "%3E");
 }

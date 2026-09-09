@@ -8,9 +8,13 @@ import byteSize from "byte-size";
 dayjs.extend(relativeTime);
 dayjs.extend(duration);
 
-const VERSION_PREFIX_RE = /^v/;
-const VERSION_BUILDMETA_RE = /\+.*$/;
-const PRERELEASE_NUMERIC_RE = /^\d+$/;
+function isAsciiDigits(value: string): boolean {
+  if (!value) return false;
+  for (const char of value) {
+    if (char < "0" || char > "9") return false;
+  }
+  return true;
+}
 
 function comparePrerelease(a: string, b: string): number {
   const aIds = a.split(".");
@@ -21,8 +25,8 @@ function comparePrerelease(a: string, b: string): number {
     const bId = bIds[i];
     if (aId === undefined) return -1;
     if (bId === undefined) return 1;
-    const aIsNum = PRERELEASE_NUMERIC_RE.test(aId);
-    const bIsNum = PRERELEASE_NUMERIC_RE.test(bId);
+    const aIsNum = isAsciiDigits(aId);
+    const bIsNum = isAsciiDigits(bId);
     if (aIsNum && bIsNum) {
       const diff = Number(aId) - Number(bId);
       if (diff !== 0) return diff > 0 ? 1 : -1;
@@ -38,7 +42,10 @@ function comparePrerelease(a: string, b: string): number {
 
 export function compareVersions(v1: string, v2: string): number {
   const parse = (v: string) => {
-    const cleaned = v.replace(VERSION_PREFIX_RE, "").replace(VERSION_BUILDMETA_RE, "");
+    const withoutPrefix = v.startsWith("v") ? v.slice(1) : v;
+    const buildIndex = withoutPrefix.indexOf("+");
+    const cleaned =
+      buildIndex === -1 ? withoutPrefix : withoutPrefix.slice(0, buildIndex);
     const dashIndex = cleaned.indexOf("-");
     const main = dashIndex === -1 ? cleaned : cleaned.slice(0, dashIndex);
     const prerelease = dashIndex === -1 ? null : cleaned.slice(dashIndex + 1);
@@ -68,10 +75,8 @@ export function formatBytes(bytes: number): string {
 }
 
 // URL helpers
-const URL_PROTOCOL_RE = /^https?:\/\//;
-
 export function transformEndpointURL(url: string): string {
-  return URL_PROTOCOL_RE.test(url)
+  return url.startsWith("http://") || url.startsWith("https://")
     ? url
     : `${typeof window !== "undefined" ? window.location.protocol : "http:"}//${url}`;
 }
@@ -89,11 +94,21 @@ export function randomUUID(): string {
   return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
 }
 
-const IPV6_RE = /:.*:/;
-const IPV4_RE = /\./;
-
 export function formatIPv6(ip: string): string {
-  return IPV6_RE.test(ip) && !IPV4_RE.test(ip) ? `[${ip}]` : ip;
+  return ip.indexOf(":") !== ip.lastIndexOf(":") && !ip.includes(".") ? `[${ip}]` : ip;
+}
+
+/** The canonical Running Mode order shared by the tray and every UI surface
+ *  (rule -> global -> direct), matching the conventional severity ladder.
+ *  The kernel's `mode-list` arrives in arbitrary order, so every UI control
+ *  normalizes through this to stay consistent with the tray. */
+const CANONICAL_MODE_ORDER = ["rule", "global", "direct"] as const;
+
+export function orderProxyModes(modes: string[] | undefined): string[] {
+  const input = modes ?? [];
+  const ordered = CANONICAL_MODE_ORDER.filter((m) => input.includes(m));
+  const extras = input.filter((m) => !CANONICAL_MODE_ORDER.includes(m as never));
+  return [...ordered, ...extras];
 }
 
 export function formatTimeFromNow(time: number | string, locale = "en"): string {

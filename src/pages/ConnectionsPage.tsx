@@ -24,6 +24,7 @@ import { useConfigStore } from "@/stores/config";
 import { useEndpointStore } from "@/stores/endpoint";
 import { closeAllConnectionsAPI, closeSingleConnectionAPI } from "@/lib/api";
 import { formatBytes, formatDuration } from "@/utils/format";
+import { chainMatchesQuickFilter, parseQuickFilterTerms } from "@/utils/quickFilter";
 import { CONNECTIONS_TABLE_ACCESSOR_KEY } from "@/constants";
 
 export default function ConnectionsPage(): React.ReactElement {
@@ -34,7 +35,7 @@ export default function ConnectionsPage(): React.ReactElement {
   const setPaused = useConnectionsStore((s) => s.setPaused);
   const columnVisibility = useConfigStore(useShallow((s) => s.connectionsTableColumnVisibility));
   const tableSize = useConfigStore((s) => s.connectionsTableSize);
-  const quickFilterRegex = useConfigStore((s) => s.quickFilterRegex);
+  const quickFilterText = useConfigStore((s) => s.quickFilterText);
   const endpoint = useEndpointStore(useShallow((s) => s.currentEndpoint()));
   const [filter, setFilter] = useState("");
 
@@ -56,14 +57,10 @@ export default function ConnectionsPage(): React.ReactElement {
   }, [active, filter]);
 
   const quickFilter = useMemo(() => {
-    if (!quickFilterRegex) return () => true;
-    try {
-      const re = new RegExp(quickFilterRegex);
-      return (c: (typeof active)[number]) => !re.test(c.chains.join("/") || c.rule);
-    } catch {
-      return () => true;
-    }
-  }, [quickFilterRegex, active]);
+    const terms = parseQuickFilterTerms(quickFilterText);
+    if (!terms.length) return () => true;
+    return (c: (typeof active)[number]) => !chainMatchesQuickFilter(c.chains, terms);
+  }, [quickFilterText, active]);
 
   const show = (k: CONNECTIONS_TABLE_ACCESSOR_KEY) => columnVisibility[k] !== false;
 

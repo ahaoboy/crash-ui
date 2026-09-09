@@ -14,6 +14,8 @@ import { useTranslation } from "react-i18next";
 import { useEffect, useState } from "react";
 import { getControlApi } from "@/lib/controlApi";
 import { useControlInfo } from "@/lib/controlInfo";
+import { DEFAULT_SCRIPT_CONTENT } from "@/constants";
+import { controlErrorMessage } from "@/utils/controlError";
 import type { ProfileDetail, ProfileMeta } from "@/types/control";
 
 // Profiles page: list + import URL + activate + delete.
@@ -25,18 +27,48 @@ export default function ProfilesPage(): React.ReactElement {
   const [url, setUrl] = useState("");
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  // Seed from the agent's recorded active id so the badge survives a reload
+  // instead of resetting to "none active" each session.
+  const [activeBaseId, setActiveBaseId] = useState<string | undefined>(undefined);
 
   const canUse = hasFeature("profiles");
 
-  useEffect(() => {
-    if (!canUse) return;
-    void getControlApi()
+  const refresh = () => {
+    if (!canUse) return Promise.resolve();
+    return getControlApi()
       .listProfiles()
-      .then(setProfiles)
-      .catch(() => {
-        /* ignore */
-      });
+      .then((list) => {
+        setProfiles(list);
+        // Sync the active marker from the source of truth so activation done
+        // outside this page (tray, scheduler, a prior session) is reflected.
+        const active = list.find(
+          (p) => p.active && p.type !== "merge" && p.type !== "script",
+        );
+        if (active) {
+          setActiveBaseId(active.id);
+        } else if (list.some((p) => p.active === false)) {
+          // The backend explicitly reports no active base — clear the marker.
+          // Skip when the flag is absent entirely (older backends).
+          setActiveBaseId(undefined);
+        }
+      })
+      .catch((e) => setError(controlErrorMessage(e)));
+  };
+
+  useEffect(() => {
+    void refresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canUse]);
+
+  const run = async (action: () => Promise<unknown>) => {
+    setError("");
+    try {
+      await action();
+    } catch (e) {
+      setError(controlErrorMessage(e));
+    }
+  };
 
   if (!canUse) {
     return (
@@ -84,9 +116,11 @@ export default function ProfilesPage(): React.ReactElement {
                 setBusy(true);
                 try {
                   await getControlApi().importProfile(url, name || undefined);
-                  setProfiles(await getControlApi().listProfiles());
+                  await refresh();
                   setUrl("");
                   setName("");
+                } catch (e) {
+                  setError(controlErrorMessage(e));
                 } finally {
                   setBusy(false);
                 }
@@ -94,9 +128,30 @@ export default function ProfilesPage(): React.ReactElement {
             >
               {t("importProfile")}
             </MuiButton>
+            <MuiButton
+              variant="outlined"
+              disabled={busy}
+              onClick={() =>
+                run(async () => {
+                  await getControlApi().createProfile({
+                    name: `script-${Date.now()}`,
+                    type: "script",
+                    content: DEFAULT_SCRIPT_CONTENT,
+                  });
+                  await refresh();
+                })
+              }
+            >
+              {t("newScript")}
+            </MuiButton>
           </Stack>
         </CardContent>
       </Card>
+      {error ? (
+        <Typography variant="body2" color="error" sx={{ mb: 1 }}>
+          {error}
+        </Typography>
+      ) : null}
       {profiles.length === 0 ? (
         <Typography variant="body2" color="text.secondary">
           {t("noProfilesYet")}
@@ -108,22 +163,41 @@ export default function ProfilesPage(): React.ReactElement {
               key={p.id}
               divider
               secondaryAction={
-                <Stack direction="row" spacing={1}>
+                <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }} useFlexGap>
+                  {p.type === "remote" ? (
+                    <MuiButton
+                      size="small"
+                      onClick={() =>
+                        run(async () => {
+                          await getControlApi().refreshAndActivateProfile(p.id);
+                          await refresh();
+                        })
+                      }
+                    >
+                      {t("profilesRefreshAndApply")}
+                    </MuiButton>
+                  ) : null}
                   <MuiButton
                     size="small"
-                    onClick={async () => {
-                      await getControlApi().activateProfile(p.id);
-                    }}
+                    onClick={() =>
+                      run(async () => {
+                        await getControlApi().activateProfile(p.id);
+                        setActiveBaseId(p.id);
+                        await refresh();
+                      })
+                    }
                   >
-                    Activate
+                    {t("activate")}
                   </MuiButton>
                   <MuiButton
                     size="small"
                     color="error"
-                    onClick={async () => {
-                      await getControlApi().deleteProfile(p.id);
-                      setProfiles(await getControlApi().listProfiles());
-                    }}
+                    onClick={() =>
+                      run(async () => {
+                        await getControlApi().deleteProfile(p.id);
+                        await refresh();
+                      })
+                    }
                   >
                     {t("delete")}
                   </MuiButton>
@@ -135,14 +209,24 @@ export default function ProfilesPage(): React.ReactElement {
                 onClick={async () => {
                   try {
                     setSelected(await getControlApi().getProfile(p.id));
-                  } catch {
-                    /* ignore */
+                  } catch (e) {
+                    setError(controlErrorMessage(e));
                   }
                 }}
               >
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                   <Chip size="small" label={p.type} />
+                  {p.id === activeBaseId ? (
+                    <Chip size="small" color="primary" label={t("activate")} />
+                  ) : null}
                   <Typography variant="body2">{p.name}</Typography>
+                  {p.type === "remote" ? (
+                    <Typography variant="caption" color="text.secondary">
+                      {p.updateInterval
+                        ? t("profilesAutoUpdateMinutes", { n: p.updateInterval })
+                        : t("profilesAutoUpdateOff")}
+                    </Typography>
+                  ) : null}
                 </Box>
                 <Typography
                   variant="caption"

@@ -11,6 +11,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { useEffect, useState } from "react";
 import { fetchBackendConfigAPI, updateBackendConfigAPI } from "@/lib/api";
+import { orderProxyModes } from "@/utils/format";
 import { useApiActions } from "@/lib/useApiActions";
 import { useConfigStore } from "@/stores/config";
 import { useConfigStore as cfg } from "@/stores/config";
@@ -38,7 +39,7 @@ export default function ConfigPage(): React.ReactElement {
       .then((c) => {
         setConfig(c);
         setCurrentMode(c.mode || "rule");
-        setModes(c["mode-list"] || c.modes || ["rule", "direct", "global"]);
+        setModes(orderProxyModes(c["mode-list"] || c.modes || ["rule", "global", "direct"]));
       })
       .catch(() => {
         /* endpoint may be down — leave blank */

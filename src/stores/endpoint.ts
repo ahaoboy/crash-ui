@@ -39,7 +39,11 @@ export const useEndpointStore = create<EndpointStoreState>()(
         const e = get().currentEndpoint();
         if (!e) return "";
         try {
-          return new URL(e.url).href.replace(/^http/, "ws").replace(/\/$/, "");
+          const parsed = new URL(e.url);
+          if (parsed.protocol === "http:") parsed.protocol = "ws:";
+          if (parsed.protocol === "https:") parsed.protocol = "wss:";
+          const href = parsed.href;
+          return href.endsWith("/") ? href.slice(0, -1) : href;
         } catch {
           return "";
         }

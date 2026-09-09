@@ -33,8 +33,17 @@ export function resolveControlConfig(): ControlConfig {
 }
 
 function stripTrailingSlash(s: string): string {
-  return s.replace(/\/$/, "");
+  return s.endsWith("/") ? s.slice(0, -1) : s;
 }
+
+// Profile validation can trigger Mihomo's first-run GEO database download.
+// Keep ordinary control requests on the client's 15s default. These finite
+// budgets outlive the agent's validator, kernel lifecycle, and (for
+// refresh+apply) a bounded subscription fetch.
+const PROFILE_SUBSCRIPTION_TIMEOUT = 45_000;
+const PROFILE_VALIDATE_TIMEOUT = 330_000;
+const PROFILE_ACTIVATE_TIMEOUT = 360_000;
+const PROFILE_REFRESH_AND_ACTIVATE_TIMEOUT = 390_000;
 
 export interface ControlApi {
   getInfo: () => Promise<ControlInfo>;
@@ -42,6 +51,13 @@ export interface ControlApi {
   startKernel: () => Promise<KernelState>;
   stopKernel: () => Promise<KernelState>;
   restartKernel: () => Promise<KernelState>;
+  /** Restore the last-known-good active config (.bak from the previous
+   *  activate) and restart — escape hatch for a config that bricks the kernel.
+   *  404s when no backup exists. */
+  rollbackKernel: () => Promise<KernelState>;
+  /** Reset to a minimal (header-only) config + restart on mihomo defaults.
+   *  Last-resort recovery when even the backup is bad. */
+  recoverKernel: () => Promise<KernelState>;
   logsUrl: () => string;
   listProfiles: () => Promise<ProfileMeta[]>;
   createProfile: (body: {
@@ -52,12 +68,26 @@ export interface ControlApi {
   getProfile: (id: string) => Promise<ProfileDetail>;
   updateProfile: (
     id: string,
-    body: { name?: string; content?: string; enabled?: boolean },
+    body: {
+      name?: string;
+      content?: string;
+      enabled?: boolean;
+      /** minutes; remote-only. 0 disables auto-update. */
+      updateInterval?: number;
+    },
   ) => Promise<ProfileMeta>;
+  /** DELETE returns 204 No Content — there is no body to parse. Chaining
+   *  .json() on an empty 204 throws "Unexpected end of JSON input" and makes a
+   *  successful delete look like a failure. */
   deleteProfile: (id: string) => Promise<void>;
   importProfile: (url: string, name?: string) => Promise<ProfileMeta>;
   activateProfile: (id: string) => Promise<KernelState>;
   refreshProfile: (id: string) => Promise<ProfileMeta>;
+  /** Combined refresh + apply: re-fetch, compose into active.yaml, validate,
+   *  and restart. Returns the refreshed meta and the resulting state. */
+  refreshAndActivateProfile: (
+    id: string,
+  ) => Promise<{ meta: ProfileMeta; kernel: KernelState }>;
   validateProfile: (id: string) => Promise<ValidateResult>;
   getSysProxy: () => Promise<SystemProxyState>;
   setSysProxy: (body: { enabled: boolean; bypass?: string[] }) => Promise<SystemProxyState>;
@@ -137,16 +167,59 @@ export function getControlApi(): ControlApi {
           throw err;
         }),
     logsUrl: () => (token ? `${base}/kernel/logs?token=${token}` : `${base}/kernel/logs`),
+    rollbackKernel: () =>
+      client
+        .post("kernel/rollback")
+        .json<KernelState>()
+        .then((r) => {
+          debug.ctrl.log(`rollbackKernel: result status=${r.status}`);
+          return r;
+        })
+        .catch((err) => {
+          logError("ctrl", "rollbackKernel failed", err);
+          throw err;
+        }),
+    recoverKernel: () =>
+      client
+        .post("kernel/recover")
+        .json<KernelState>()
+        .then((r) => {
+          debug.ctrl.log(`recoverKernel: result status=${r.status}`);
+          return r;
+        })
+        .catch((err) => {
+          logError("ctrl", "recoverKernel failed", err);
+          throw err;
+        }),
     listProfiles: () => client.get("profiles").json<ProfileMeta[]>(),
     createProfile: (body) => client.post("profiles", { json: body }).json<ProfileMeta>(),
     getProfile: (id) => client.get(`profiles/${id}`).json<ProfileDetail>(),
     updateProfile: (id, body) => client.put(`profiles/${id}`, { json: body }).json<ProfileMeta>(),
-    deleteProfile: (id) => client.delete(`profiles/${id}`).json<void>(),
+    deleteProfile: async (id) => {
+      await client.delete(`profiles/${id}`);
+    },
     importProfile: (url, name) =>
-      client.post("profiles/import", { json: { url, name } }).json<ProfileMeta>(),
-    activateProfile: (id) => client.post(`profiles/${id}/activate`).json<KernelState>(),
-    refreshProfile: (id) => client.post(`profiles/${id}/refresh`).json<ProfileMeta>(),
-    validateProfile: (id) => client.post(`profiles/${id}/validate`).json<ValidateResult>(),
+      client
+        .post("profiles/import", { json: { url, name }, timeout: PROFILE_SUBSCRIPTION_TIMEOUT })
+        .json<ProfileMeta>(),
+    activateProfile: (id) =>
+      client
+        .post(`profiles/${id}/activate`, { timeout: PROFILE_ACTIVATE_TIMEOUT })
+        .json<KernelState>(),
+    refreshProfile: (id) =>
+      client
+        .post(`profiles/${id}/refresh`, { timeout: PROFILE_SUBSCRIPTION_TIMEOUT })
+        .json<ProfileMeta>(),
+    refreshAndActivateProfile: (id) =>
+      client
+        .post(`profiles/${id}/refresh-and-activate`, {
+          timeout: PROFILE_REFRESH_AND_ACTIVATE_TIMEOUT,
+        })
+        .json<{ meta: ProfileMeta; kernel: KernelState }>(),
+    validateProfile: (id) =>
+      client
+        .post(`profiles/${id}/validate`, { timeout: PROFILE_VALIDATE_TIMEOUT })
+        .json<ValidateResult>(),
     getSysProxy: () => client.get("sysproxy").json<SystemProxyState>(),
     setSysProxy: (body) => client.post("sysproxy", { json: body }).json<SystemProxyState>(),
     getKernelVersions: () => client.get("kernel/versions").json<KernelVersions>(),
