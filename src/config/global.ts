@@ -31,3 +31,11 @@ export function getDesktopBridge(): DesktopBridge {
 }
 
 export { version as APP_VERSION } from "../../package.json";
+
+/** Commit hash injected into index.html at build time by vite.config.ts.
+ *  Empty when the build ran without git (e.g. from a source tarball). */
+export function getAppCommit(): string {
+  if (typeof document === "undefined") return "";
+  const meta = document.querySelector('meta[name="commit"]');
+  return meta?.getAttribute("content")?.trim() || "";
+}

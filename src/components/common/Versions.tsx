@@ -1,13 +1,29 @@
-import { Typography } from "@mui/material";
-import { APP_VERSION } from "@/config/global";
+import { Typography, Box } from "@mui/material";
+import { APP_VERSION, getAppCommit } from "@/config/global";
 
 export default function Versions(): React.ReactElement {
+  const commit = getAppCommit();
   return (
-    <Typography
-      variant="caption"
-      sx={{ color: "text.disabled", textAlign: "center", fontSize: 11, py: 0.5 }}
-    >
-      v{APP_VERSION}
-    </Typography>
+    <Box sx={{ textAlign: "center", py: 0.5 }}>
+      <Typography variant="caption" sx={{ color: "text.disabled", fontSize: 11, display: "block" }}>
+        v{APP_VERSION}
+      </Typography>
+      {commit ? (
+        <Typography
+          variant="caption"
+          title={commit}
+          sx={{
+            color: "text.disabled",
+            fontSize: 10,
+            display: "block",
+            fontFamily: "monospace",
+            opacity: 0.7,
+            lineHeight: 1.4,
+          }}
+        >
+          {commit}
+        </Typography>
+      ) : null}
+    </Box>
   );
 }
