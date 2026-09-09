@@ -41,3 +41,9 @@ npx serve dist
 
 - [crash](https://github.com/ahaoboy/crash)
 - [MetaCubeXD](https://github.com/MetaCubeX/metacubexd)
+
+## Upstream Sync
+
+This repository is a lightweight React implementation of MetaCubeXD `packages/ui`. See
+[update.md](./update.md) for the sync workflow and [CHANGELOG.md](./CHANGELOG.md) for the
+sync history.

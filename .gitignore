@@ -1,4 +1,6 @@
 pnpm-lock.yaml
+# Temporary upstream sync diff
+.upstream-ui.diff
 # Logs
 logs
 *.log
