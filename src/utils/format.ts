@@ -44,8 +44,7 @@ export function compareVersions(v1: string, v2: string): number {
   const parse = (v: string) => {
     const withoutPrefix = v.startsWith("v") ? v.slice(1) : v;
     const buildIndex = withoutPrefix.indexOf("+");
-    const cleaned =
-      buildIndex === -1 ? withoutPrefix : withoutPrefix.slice(0, buildIndex);
+    const cleaned = buildIndex === -1 ? withoutPrefix : withoutPrefix.slice(0, buildIndex);
     const dashIndex = cleaned.indexOf("-");
     const main = dashIndex === -1 ? cleaned : cleaned.slice(0, dashIndex);
     const prerelease = dashIndex === -1 ? null : cleaned.slice(dashIndex + 1);

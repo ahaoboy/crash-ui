@@ -42,9 +42,7 @@ export default function ProfilesPage(): React.ReactElement {
         setProfiles(list);
         // Sync the active marker from the source of truth so activation done
         // outside this page (tray, scheduler, a prior session) is reflected.
-        const active = list.find(
-          (p) => p.active && p.type !== "merge" && p.type !== "script",
-        );
+        const active = list.find((p) => p.active && p.type !== "merge" && p.type !== "script");
         if (active) {
           setActiveBaseId(active.id);
         } else if (list.some((p) => p.active === false)) {

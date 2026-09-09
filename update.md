@@ -19,11 +19,11 @@ equivalent here → record it in `CHANGELOG.md`.
 The snippets below are POSIX/bash. This machine's integrated terminal runs **fish**, where two
 things differ:
 
-| bash | fish |
-| --- | --- |
-| `$?` | `$status` |
-| `export X=1` | `set -x X 1` |
-| `VAR=x cmd` | `env VAR=x cmd` |
+| bash         | fish            |
+| ------------ | --------------- |
+| `$?`         | `$status`       |
+| `export X=1` | `set -x X 1`    |
+| `VAR=x cmd`  | `env VAR=x cmd` |
 
 Everything else used here (`$(...)`, `\` line continuation, `${VAR:-default}`, redirection)
 works unchanged. If a command errors with a `fish:` prefix, translate it before retrying.
@@ -42,13 +42,13 @@ pnpm install        # required before lint/build; the repo may have no node_modu
 
 ## 0. Metadata
 
-| Item | Value |
-| --- | --- |
-| Upstream repo | `https://github.com/MetaCubeX/metacubexd` |
-| Upstream local path | `$UPSTREAM_DIR` (set in Step 0, never hardcoded) |
-| Watched directory | `packages/ui` (ignore everything else) |
-| This repo's path | `$REPO_DIR` (auto-detected via git) |
-| Change log | `CHANGELOG.md` (single source of truth for the baseline hash) |
+| Item                | Value                                                         |
+| ------------------- | ------------------------------------------------------------- |
+| Upstream repo       | `https://github.com/MetaCubeX/metacubexd`                     |
+| Upstream local path | `$UPSTREAM_DIR` (set in Step 0, never hardcoded)              |
+| Watched directory   | `packages/ui` (ignore everything else)                        |
+| This repo's path    | `$REPO_DIR` (auto-detected via git)                           |
+| Change log          | `CHANGELOG.md` (single source of truth for the baseline hash) |
 
 ### Baseline hash
 
@@ -279,33 +279,33 @@ into the docs commit) so the baseline still advances.
 
 ## 2. Upstream → This Repo Mapping
 
-| Upstream `packages/ui` | This repo `src` | Notes |
-| --- | --- | --- |
-| `types/control.ts` | `src/types/control.ts` | Mihomo control API types |
-| `types/index.ts` | `src/types/index.ts` | Shared types |
-| `types/network.ts` | `src/types/network.ts` | Network types |
-| `stores/*.ts` | `src/stores/*.ts` | Pinia → Zustand |
-| `composables/useApi.ts` | `src/lib/api.ts` | HTTP client |
-| `composables/useControlApi.ts` | `src/lib/controlApi.ts` | Control API wrapper |
-| `composables/useControlInfo.ts` | `src/lib/controlInfo.ts` | Kernel info |
-| `composables/useConnect.ts` | `src/lib/connect.ts` | Connection logic |
-| `composables/useWebSocket.ts` | `src/lib/websocket.ts` | WebSocket |
-| `composables/useKeyboardShortcuts.ts` | `src/hooks/useKeyboardShortcuts.ts` | Shortcuts |
-| `utils/index.ts` | `src/utils/format.ts` | Formatting |
-| `utils/connectionCells.ts` | `src/utils/connectionCells.ts` | Connection table |
-| `utils/nodeScoring.ts` | `src/utils/nodeScoring.ts` | Node scoring |
-| `utils/latencyTrend.ts` | `src/utils/latencyTrend.ts` | Latency trend |
-| `utils/routingResources.ts` | `src/utils/routingResources.ts` | Routing resources |
-| `utils/controlError.ts` | `src/utils/controlError.ts` | Control error unwrapping |
-| `components/connections/quickFilter.ts` | `src/utils/quickFilter.ts` | Literal quick-filter terms |
-| `utils/appearanceDb.ts` | `src/utils/appearanceDb.ts` | Appearance storage |
-| `utils/db.ts` | `src/utils/db.ts` | Local storage |
-| `constants/index.ts` | `src/constants/index.ts` | Constants |
-| `constants/shortcuts.ts` | `src/constants/shortcuts.ts` | Shortcut definitions |
-| `i18n/locales/*.json` | `src/i18n/locales/*.json` | Text |
-| `pages/*.vue` | `src/pages/*.tsx` | Pages |
-| `components/*.vue` | `src/components/**` | Components |
-| `layouts/*.vue` | `src/components/layout/*` | Layouts |
+| Upstream `packages/ui`                  | This repo `src`                     | Notes                      |
+| --------------------------------------- | ----------------------------------- | -------------------------- |
+| `types/control.ts`                      | `src/types/control.ts`              | Mihomo control API types   |
+| `types/index.ts`                        | `src/types/index.ts`                | Shared types               |
+| `types/network.ts`                      | `src/types/network.ts`              | Network types              |
+| `stores/*.ts`                           | `src/stores/*.ts`                   | Pinia → Zustand            |
+| `composables/useApi.ts`                 | `src/lib/api.ts`                    | HTTP client                |
+| `composables/useControlApi.ts`          | `src/lib/controlApi.ts`             | Control API wrapper        |
+| `composables/useControlInfo.ts`         | `src/lib/controlInfo.ts`            | Kernel info                |
+| `composables/useConnect.ts`             | `src/lib/connect.ts`                | Connection logic           |
+| `composables/useWebSocket.ts`           | `src/lib/websocket.ts`              | WebSocket                  |
+| `composables/useKeyboardShortcuts.ts`   | `src/hooks/useKeyboardShortcuts.ts` | Shortcuts                  |
+| `utils/index.ts`                        | `src/utils/format.ts`               | Formatting                 |
+| `utils/connectionCells.ts`              | `src/utils/connectionCells.ts`      | Connection table           |
+| `utils/nodeScoring.ts`                  | `src/utils/nodeScoring.ts`          | Node scoring               |
+| `utils/latencyTrend.ts`                 | `src/utils/latencyTrend.ts`         | Latency trend              |
+| `utils/routingResources.ts`             | `src/utils/routingResources.ts`     | Routing resources          |
+| `utils/controlError.ts`                 | `src/utils/controlError.ts`         | Control error unwrapping   |
+| `components/connections/quickFilter.ts` | `src/utils/quickFilter.ts`          | Literal quick-filter terms |
+| `utils/appearanceDb.ts`                 | `src/utils/appearanceDb.ts`         | Appearance storage         |
+| `utils/db.ts`                           | `src/utils/db.ts`                   | Local storage              |
+| `constants/index.ts`                    | `src/constants/index.ts`            | Constants                  |
+| `constants/shortcuts.ts`                | `src/constants/shortcuts.ts`        | Shortcut definitions       |
+| `i18n/locales/*.json`                   | `src/i18n/locales/*.json`           | Text                       |
+| `pages/*.vue`                           | `src/pages/*.tsx`                   | Pages                      |
+| `components/*.vue`                      | `src/components/**`                 | Components                 |
+| `layouts/*.vue`                         | `src/components/layout/*`           | Layouts                    |
 
 Present upstream but not implemented here: `config-editor` (Monaco), `NetworkTopology`,
 `OnboardingWizard`, `DesktopSettingsPanel`, `WebdavBackup`, `KernelLogView`, and other heavy features.

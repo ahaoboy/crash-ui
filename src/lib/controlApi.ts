@@ -85,9 +85,7 @@ export interface ControlApi {
   refreshProfile: (id: string) => Promise<ProfileMeta>;
   /** Combined refresh + apply: re-fetch, compose into active.yaml, validate,
    *  and restart. Returns the refreshed meta and the resulting state. */
-  refreshAndActivateProfile: (
-    id: string,
-  ) => Promise<{ meta: ProfileMeta; kernel: KernelState }>;
+  refreshAndActivateProfile: (id: string) => Promise<{ meta: ProfileMeta; kernel: KernelState }>;
   validateProfile: (id: string) => Promise<ValidateResult>;
   getSysProxy: () => Promise<SystemProxyState>;
   setSysProxy: (body: { enabled: boolean; bypass?: string[] }) => Promise<SystemProxyState>;

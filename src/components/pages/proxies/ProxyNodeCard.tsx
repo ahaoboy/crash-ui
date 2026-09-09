@@ -51,12 +51,30 @@ export default function ProxyNodeCard({
     >
       <CardContent
         sx={{
-          p:
+          // Keep the horizontal padding for the label/chips row, but trim the
+          // vertical padding so cards are shorter. CardContent's default
+          // `:last-child { padding-bottom: 24px }` is overridden too, otherwise
+          // the bottom stays much larger than the top.
+          px:
             cardSize === PROXIES_CARD_SIZE.TIGHT
               ? 0.75
               : cardSize === PROXIES_CARD_SIZE.COMPACT
                 ? 1
                 : 1.5,
+          py:
+            cardSize === PROXIES_CARD_SIZE.TIGHT
+              ? 0.5
+              : cardSize === PROXIES_CARD_SIZE.COMPACT
+                ? 0.75
+                : 1,
+          "&:last-child": {
+            pb:
+              cardSize === PROXIES_CARD_SIZE.TIGHT
+                ? 0.5
+                : cardSize === PROXIES_CARD_SIZE.COMPACT
+                  ? 0.75
+                  : 1,
+          },
         }}
       >
         <Stack spacing={0.5}>

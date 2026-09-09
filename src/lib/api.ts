@@ -20,9 +20,7 @@ type BackendReleaseChannel = "alpha" | "beta" | "meta" | "stable";
 function isAsciiWord(char: string | undefined): boolean {
   if (!char) return false;
   const lower = char.toLowerCase();
-  return (
-    (lower >= "a" && lower <= "z") || (char >= "0" && char <= "9") || char === "_"
-  );
+  return (lower >= "a" && lower <= "z") || (char >= "0" && char <= "9") || char === "_";
 }
 
 function backendVersionParts(currentVersion: string): {
@@ -44,8 +42,7 @@ function backendVersionParts(currentVersion: string): {
       const hasBoundary = index === 0 || !isAsciiWord(value[index - 1]);
       let suffixStart = index + channel.length;
       if (value[suffixStart] === "-") suffixStart++;
-      const hasSuffix =
-        suffixStart < value.length && value[suffixStart]!.trim() !== "";
+      const hasSuffix = suffixStart < value.length && value[suffixStart]!.trim() !== "";
       if (hasBoundary && hasSuffix) {
         let suffixEnd = suffixStart;
         while (suffixEnd < value.length && value[suffixEnd]!.trim() !== "") {
@@ -63,18 +60,14 @@ function backendVersionParts(currentVersion: string): {
     }
   }
 
-  return best
-    ? { channel: best.channel, suffix: best.suffix }
-    : { channel: undefined, suffix: "" };
+  return best ? { channel: best.channel, suffix: best.suffix } : { channel: undefined, suffix: "" };
 }
 
 function resolveBackendReleaseTarget(currentVersion: string) {
   const { channel, suffix } = backendVersionParts(currentVersion);
   return {
     channel: channel ?? "stable",
-    repositoryURL: currentVersion.toLowerCase().includes("-smart-")
-      ? VERNESONG_REPO
-      : MIHOMO_REPO,
+    repositoryURL: currentVersion.toLowerCase().includes("-smart-") ? VERNESONG_REPO : MIHOMO_REPO,
     versionSuffix: suffix,
   };
 }
