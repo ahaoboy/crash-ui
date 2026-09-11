@@ -5,7 +5,11 @@ import { execSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { viteSingleFile } from "vite-plugin-singlefile";
 
-const pkg = JSON.parse(readFileSync("./package.json", "utf-8"));
+// `import.meta.dirname` instead of `__dirname`: the latter is unsupported by
+// Vite's native config loader, which is becoming the default in a future major.
+const rootDir = import.meta.dirname;
+
+const pkg = JSON.parse(readFileSync(path.resolve(rootDir, "package.json"), "utf-8"));
 
 function getCommitHash(): string {
   try {
@@ -37,7 +41,7 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "src"),
+      "@": path.resolve(rootDir, "src"),
     },
   },
 });
