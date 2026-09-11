@@ -101,6 +101,9 @@ const DEFAULT_CARD = CARD_SIZE.COMFORTABLE as PROXIES_CARD_SIZE;
 const DEFAULT_RULES = RULES_ORDER.NATURAL as RULES_ORDERING_TYPE;
 const DEFAULT_LOG_LEVEL = LOG_LEVEL_ENUM.Info as LOG_LEVEL;
 const DEFAULT_TABLE_SIZE = SIZE.XS as TableSize;
+// Landing page after connecting. Not user-configurable in the UI, so this is
+// both the store default and the value the v2 migration upgrades to.
+export const DEFAULT_PAGE = "proxies";
 
 export const useConfigStore = create<ConfigStoreState>()(
   persist(
@@ -125,7 +128,7 @@ export const useConfigStore = create<ConfigStoreState>()(
 
       sidebarExpanded: false,
       useMobileBottomNav: true,
-      defaultPage: "overview",
+      defaultPage: DEFAULT_PAGE,
 
       connectionsTableSize: DEFAULT_TABLE_SIZE,
       connectionsTableColumnVisibility: { ...CONNECTIONS_TABLE_INITIAL_COLUMN_VISIBILITY },
@@ -171,7 +174,7 @@ export const useConfigStore = create<ConfigStoreState>()(
         set({
           themeMode: "dark",
           useMobileBottomNav: true,
-          defaultPage: "overview",
+          defaultPage: DEFAULT_PAGE,
           enableDataUsageTracking: true,
         }),
       resolveLatencyTestUrl: (groupTestUrl) => {
@@ -205,7 +208,8 @@ export const useConfigStore = create<ConfigStoreState>()(
       name: "crash-config",
       // v1: removed `chipsMode` (retired proxies display mode) and `stickyGroupHeader`;
       // renamed `quickFilterRegex` -> `quickFilterText` (now literal terms, not a regex).
-      version: 1,
+      // v2: landing page is no longer persisted from a stale default.
+      version: 2,
       migrate: (persisted) => {
         const state = persisted as Record<string, unknown>;
         const validDisplayModes = new Set<string>(Object.values(DISPLAY_MODE));
@@ -220,6 +224,9 @@ export const useConfigStore = create<ConfigStoreState>()(
         }
         delete state.quickFilterRegex;
         delete state.stickyGroupHeader;
+        // `defaultPage` is not user-configurable, so any stored value is just a
+        // stale default — always reset it to the current one.
+        state.defaultPage = DEFAULT_PAGE;
         return state as unknown as ConfigStoreState;
       },
       partialize: (s) => ({

@@ -3,7 +3,7 @@ import { IconServer } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
 import ConnectForm from "@/components/pages/connect/ConnectForm";
 import { useEndpointStore } from "@/stores/endpoint";
-import { useConfigStore } from "@/stores/config";
+import { useConfigStore, DEFAULT_PAGE } from "@/stores/config";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useEffect, useRef, type RefObject } from "react";
 import type { ConnectFormHandle } from "@/components/pages/connect/ConnectForm";
@@ -19,7 +19,7 @@ export default function IndexPage(): React.ReactElement {
 
   useEffect(() => {
     if (currentEndpoint) {
-      navigate(`/${defaultPage || "overview"}`, { replace: true });
+      navigate(`/${defaultPage || DEFAULT_PAGE}`, { replace: true });
       return;
     }
     void formRef.current?.autoLogin(Object.fromEntries(params.entries()));

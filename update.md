@@ -322,9 +322,9 @@ Run after implementing, before writing the CHANGELOG entry:
       (enum members, store fields, i18n keys):
 
       ```bash
-          cd "$REPO_DIR"
-          grep -rn 'REMOVED_SYMBOL' src/ || echo "clean"
-          ```
+              cd "$REPO_DIR"
+              grep -rn 'REMOVED_SYMBOL' src/ || echo "clean"
+            ```
 
 - [ ] Every renamed/removed persisted store field has a `version` + `migrate` in its persist config
 - [ ] `en.json` and `cn.json` have the same key set for every key you touched
