@@ -5,7 +5,7 @@ import { formatProxyType as translateProxyType } from "@/utils/proxy";
 import Latency from "@/components/common/Latency";
 import { useTranslation } from "react-i18next";
 import { useConfigStore } from "@/stores/config";
-import { PROXIES_CARD_SIZE, PROXIES_CARD_SIZE_MIN_WIDTH, PROXIES_CARD_SIZE_GAP } from "@/constants";
+import { PROXIES_CARD_SIZE } from "@/constants";
 
 interface Props {
   proxyName: string;
@@ -29,8 +29,6 @@ export default function ProxyNodeCard({
   const { t } = useTranslation();
   const node = useProxiesStore(useShallow((s) => s.getNode(proxyName)));
   const cardSize = useConfigStore((s) => s.proxiesCardSize) ?? PROXIES_CARD_SIZE.COMFORTABLE;
-  const minWidth = PROXIES_CARD_SIZE_MIN_WIDTH[cardSize];
-  const gap = PROXIES_CARD_SIZE_GAP[cardSize];
 
   return (
     <Card
@@ -38,10 +36,11 @@ export default function ProxyNodeCard({
       onClick={onSelect}
       sx={{
         cursor: "pointer",
-        minWidth,
-        flex: `1 0 ${minWidth}px`,
-        maxWidth: minWidth * 2,
-        m: `${gap / 2}px`,
+        // The parent is a grid whose tracks are sized by minWidth, so the card
+        // just fills its cell. Stretching it here (flex-grow) made the last,
+        // partially-filled row span the whole width.
+        width: "100%",
+        boxSizing: "border-box",
         borderRadius: 2,
         borderColor: isSelected ? "primary.main" : "divider",
         borderWidth: isSelected ? 2 : 1,

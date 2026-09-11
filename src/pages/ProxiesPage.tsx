@@ -20,6 +20,8 @@ import {
   PROXIES_DISPLAY_MODE_ORDER,
   PROXIES_ORDERING_TYPE_ORDER,
   PROXIES_CARD_SIZE,
+  PROXIES_CARD_SIZE_MIN_WIDTH,
+  PROXIES_CARD_SIZE_GAP,
   PROXIES_ORDERING_TYPE as ORDERING,
 } from "@/constants";
 
@@ -46,6 +48,9 @@ export default function ProxiesPage(): React.ReactElement {
 
   const [keyword, setKeyword] = useState("");
   const [busyGroup, setBusyGroup] = useState<string | null>(null);
+
+  const cardMinWidth = PROXIES_CARD_SIZE_MIN_WIDTH[cardSize];
+  const cardGap = PROXIES_CARD_SIZE_GAP[cardSize];
 
   useEffect(() => {
     void fetchProxies();
@@ -226,7 +231,17 @@ export default function ProxiesPage(): React.ReactElement {
                   </MuiButton>
                 </Stack>
               </Box>
-              <Box sx={{ display: "flex", flexWrap: "wrap", mx: -0.5 }}>
+              <Box
+                sx={{
+                  // `auto-fill` (not `auto-fit`) keeps the empty tracks in a
+                  // partially-filled last row, so its cards stay the same width
+                  // as every other row instead of stretching to fill the width.
+                  display: "grid",
+                  gridTemplateColumns: `repeat(auto-fill, minmax(${cardMinWidth}px, 1fr))`,
+                  gap: `${cardGap}px`,
+                  alignItems: "stretch",
+                }}
+              >
                 {filteredMembers.map((nodeName) => (
                   <ProxyNodeCard
                     key={nodeName}
