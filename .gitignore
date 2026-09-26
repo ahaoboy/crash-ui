@@ -1,4 +1,6 @@
+pnpm-workspace.yaml
 pnpm-lock.yaml
+bun.lock
 # Upstream sync scratch space (diffs, command logs)
 .upstream/
 .upstream-ui.diff

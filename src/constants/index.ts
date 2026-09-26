@@ -25,6 +25,8 @@ export const ROUTES = {
 
 export const CHART_MAX_XAXIS = 30;
 
+export const GITHUB_URL = "https://github.com/ahaoboy/crash-ui";
+
 /** Seed content for a newly-created script profile. mihomo's script runner
  *  expects a function exported as `export default (config) => config` (or
  *  `module.exports = (config) => config`), NOT a `main()` function like Clash

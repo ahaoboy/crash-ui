@@ -16,6 +16,7 @@ import {
   IconRoute,
   IconMoon,
   IconSun,
+  IconBrandGithub,
 } from "@tabler/icons-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -26,6 +27,7 @@ import { useApiActions } from "@/lib/useApiActions";
 import LogoText from "@/components/common/LogoText";
 import LangSwitcher from "@/components/common/LangSwitcher";
 import Versions from "@/components/common/Versions";
+import { GITHUB_URL } from "@/constants";
 
 interface NavItem {
   href: string;
@@ -120,7 +122,7 @@ export default function Sidebar(): React.ReactElement {
             }}
           >
             {expanded ? (
-              <LogoText size={16} />
+              <LogoText size={16} href={GITHUB_URL} />
             ) : (
               <Box
                 onClick={() => useConfigStore.setState({ sidebarExpanded: !expanded })}
@@ -233,6 +235,7 @@ export default function Sidebar(): React.ReactElement {
           >
             <LangSwitcher />
             <ThemeToggleBtn />
+            <GitHubButton />
           </Box>
 
           <Versions />
@@ -270,10 +273,11 @@ export default function Sidebar(): React.ReactElement {
         >
           <IconMenu2 size={20} />
         </button>
-        <LogoText size={16} />
+        <LogoText size={16} href={GITHUB_URL} />
         <Box sx={{ ml: "auto", display: "flex", gap: 1 }}>
           <LangSwitcher />
           <ThemeToggleBtn />
+          <GitHubButton />
         </Box>
       </Box>
 
@@ -300,7 +304,7 @@ export default function Sidebar(): React.ReactElement {
               overflowY: "auto",
             }}
           >
-            <LogoText size={16} />
+            <LogoText size={16} href={GITHUB_URL} />
             {navItems.map((item) => (
               <NavButton key={item.href} to={item.href} onClick={() => setMobileOpen(false)}>
                 {item.icon}
@@ -311,6 +315,24 @@ export default function Sidebar(): React.ReactElement {
         </Box>
       ) : null}
     </Box>
+  );
+}
+
+function GitHubButton() {
+  return (
+    <Button
+      size="small"
+      variant="outlined"
+      color="inherit"
+      component="a"
+      href={GITHUB_URL}
+      target="_blank"
+      rel="noreferrer noopener"
+      sx={{ minWidth: 36, borderColor: "divider", color: "text.secondary" }}
+      title="GitHub"
+    >
+      <IconBrandGithub size={16} />
+    </Button>
   );
 }
 
