@@ -15,19 +15,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: setup node
-        uses: actions/setup-node@v4
-        with:
-          node-version: lts/*
 
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 11
+      - uses: oven-sh/setup-bun@v2
 
       - name: Install & Build
         run: |
-          pnpm install
-          pnpm build
+          bun install
+          bun run build
 
       - name: Package
         run: cd dist && zip ../crash-ui.zip index.html
